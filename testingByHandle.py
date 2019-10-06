@@ -13,11 +13,12 @@ auth.set_access_token(access_token, access_token_secret)
 # Creation of the actual interface, using authentication
 api = tweepy.API(auth)
 
-x = 0
+counter = 0
 
+print("getting all tweets. please wait a few minutes")
 for status in tweepy.Cursor(api.user_timeline, screen_name='@realDonaldTrump', tweet_mode="extended").items():
-    print(status.full_text)
-    x = x+1
+    # print(status.full_text)
+    counter += 1
 
 
-print("total tweets: ", x)
+print("total tweets: ", counter)
