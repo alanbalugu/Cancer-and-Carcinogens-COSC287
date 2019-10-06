@@ -77,10 +77,10 @@ def cleanNullValue_Scoring(myData):
 	columnsList.reverse()
 	print(columnsList)
 
-	isEmpty = 0
-	isNull = 0
-
 	for index, row in myData.iterrows():
+
+		isEmpty = 0
+		isNull = 0
 
 		for name in columnsList:
 			if not row[name].strip(): #empty string
