@@ -81,6 +81,7 @@ def cleanNullValue_Scoring(myData):
 
 		isEmpty = 0
 		isNull = 0
+		hasRT = 0
 
 		for name in columnsList:
 			if not row[name].strip(): #empty string
@@ -88,11 +89,15 @@ def cleanNullValue_Scoring(myData):
 			if row[name] == "None" or row[name] == "null":
 				isNull = isNull +1
 
-		totalBad = isEmpty + isNull
+		if "RT @" in row["tweet_text"]:
+			hasRT = hasRT + 1
+
+
+		totalBad = isEmpty + isNull + hasRT
 
 		NullValueScore.append(str(float(totalBad/len(columnsList))))
 
-	myData["NullValueScore"] = NullValueScore
+	myData["BadValueScore"] = NullValueScore
 
 
 def saveData(myData, fileName):
