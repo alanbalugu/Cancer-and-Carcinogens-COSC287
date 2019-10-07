@@ -1,3 +1,5 @@
+#Alan Balu, agb76
+
 import tweepy
 from pprint import pprint
 import pandas as pd
@@ -45,9 +47,10 @@ def getTweets(handle):
 	auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 	auth.set_access_token(access_token, access_token_secret)
 
-	# Creation of the actual interface, using authentication
+	# Creation of the actual api connection, using authentication
 	api = tweepy.API(auth)
 
+	# Call twitter API through tweepy to get all the tweets from the handle
 	tweets = tweepy.Cursor(api.user_timeline, screen_name=handle, tweet_mode="extended", include_retweets = False).items()
 
 	return tweets
@@ -55,26 +58,32 @@ def getTweets(handle):
 #driver to get twitter data for each handle
 def main():
 	
+	#read the list of handles from the textfile
 	handleFile = open("twitterhandles.txt", 'r')
-
 	handleList0 = handleFile.readlines()
 	handleList = []
 
+	#remove the '\n' from the twitter handes from file
 	for handle in handleList0:
 		handleList.append(str(handle.strip()))
 
 	print(handleList)
 
+	#for each twitter handle, create the dataframe, call api, format data into the dataframe, and save the data.
 	for handle in handleList:
 		       
 		outputFrame = pd.DataFrame()
 
-		tweets = getTweets(handle)
+		try:
+			tweets = getTweets(handle)
+		except:
+			print("an error occurred with this twitter handle request, may be rate limited")
+		
 		formatData(outputFrame, tweets)
 		saveData(outputFrame, handle)
+
+		#pause between runs to reduce the chances of being rate limited
 		time.sleep(60)
-
-
 
 if __name__ == '__main__':
 
