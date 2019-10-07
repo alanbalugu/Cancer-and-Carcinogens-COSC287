@@ -6,14 +6,15 @@ import glob, os
 
 def main():
 	print("cleaning twitter data")
-	queryList = ["pollution", "smog", "chemicals", "toxins", "contamination", "emissions", "sewage"]
+	queryList = ["pollution", "pollutant", "polluting", "greenhouse gas", "biohazard", "co2", "carbon dioxide", "dirty air", "dirty water", "ozone", "smog", "chemical", "toxin", "particulates", "contamination", "contaminant", "emission", "sewage", "waste", "pesticide", "carcinogen"]
 	#songDF = pd.read_csv('data.csv' , sep=',', encoding='latin1')
 
 	for file in glob.glob("*.csv"):
 
 		if "cleaned" not in file:
 			print(file)
-			twitterDF = pd.read_csv(file , sep=',', encoding='latin1')
+			twitterDF = pd.read_csv(file, sep=',', encoding="utf-8")
+			twitterDF["tweet_text"] = twitterDF['tweet_text'].str.lower()
 			#cleanTweetText_Remove(twitterDF, queryList)
 			cleanNullValue_Scoring(twitterDF)
 			cleanTweetText_Scoring(twitterDF, queryList)

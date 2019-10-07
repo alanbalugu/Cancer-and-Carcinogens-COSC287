@@ -2,6 +2,7 @@ import tweepy
 from pprint import pprint
 import pandas as pd
 from datetime import datetime
+import time
 
 
 #API keys and access token for OAuth process
@@ -14,7 +15,7 @@ access_token_secret="CBoO595aL8pu3YlP7ZtzRQ0J7mBo7YSY0jpmQ7p4a9qRT"
 def saveData(outputFrame, handle):
 
     myFileName="TwitterData_" + str(datetime.now().strftime('%Y.%m.%d_%H.%M.%S')) + handle + ".csv"
-    outputFrame.to_csv(myFileName, mode= 'a')
+    outputFrame.to_csv(myFileName, mode= 'a', encoding='utf-8-sig')
 
 #formats the data into columns into a pandas dataframe
 def formatData(outputFrame, tweets):
@@ -54,7 +55,15 @@ def getTweets(handle):
 #driver to get twitter data for each handle
 def main():
 	
-	handleList = ["@USATODAY"]
+	handleFile = open("twitterhandles.txt", 'r')
+
+	handleList0 = handleFile.readlines()
+	handleList = []
+
+	for handle in handleList0:
+		handleList.append(str(handle.strip()))
+
+	print(handleList)
 
 	for handle in handleList:
 		       
@@ -63,6 +72,9 @@ def main():
 		tweets = getTweets(handle)
 		formatData(outputFrame, tweets)
 		saveData(outputFrame, handle)
+		time.sleep(60)
+
+
 
 if __name__ == '__main__':
 
