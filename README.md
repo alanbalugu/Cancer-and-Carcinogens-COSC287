@@ -3,7 +3,7 @@ netids: agb76, pnl8, kie3, akh70
 Twitter:
 
     to download twitter data as csv files:
-        run GetTwitterDataByHangle.py
+        run GetTwitterDataByHandle.py
         this file will use twitterhandles.txt to access different handles' data
 
     to view original twitter data in csv format:
