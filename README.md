@@ -38,3 +38,16 @@ EPA Data:
         contains two files:
             epa_data_state_releases_cleaned.csv
             epa_data_state_chems_and_releases_cleaned.csv
+            
+CDC Data:
+
+    to generate csv files containing data from the CDC
+    dataset imported through pandas, run "cdc.py" which
+    writes out the original, uncleaned CDC data, as well
+    as performs the data cleaning procedures to then create
+    a new, cleaned dataset
+        this will create "CDC_API.csv" which contains
+        the original, uncleaned data from CDC.gov, as
+        well as "CDC_API_Clean.csv" which contains the
+        dataframe after cleaning, sorting, and removing
+        rows containing null data
