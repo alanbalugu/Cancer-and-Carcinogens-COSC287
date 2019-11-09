@@ -13,7 +13,7 @@ def main():
 def stateYearChem(myDataFrame):
     statesList = myDataFrame['STATE_ABBR'].unique()
     statesList.sort()
-    yearsList = myDataFrame['ACTIVE_DATE'].unique()
+    yearsList = myDataFrame['REPORTING_YEAR'].unique()
     yearsList.sort()
 
     stateYearFrame = pd.DataFrame(index=statesList, columns=yearsList)

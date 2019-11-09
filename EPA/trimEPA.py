@@ -48,15 +48,14 @@ def main():
 	# cleanData("epa_data_state_and_releases")
 	# cleanData("epa_data_state_chems_and_releases.csv")
 	
-	pd.set_option('display.max_columns', 1000)
+	# chemicals and releases
 	myDataFrame1 = readData(STATE_CHEMS_RELEASES_FILENAME)
-	print(myDataFrame1.columns)
-	# myDataFrame1 = dropUnnecessaryRowsColumns(myDataFrame1)
-	# cleanData(myDataFrame1, STATE_CHEMS_RELEASES_FILENAME)
+	myDataFrame1 = dropUnnecessaryRowsColumns(myDataFrame1)
+	cleanData(myDataFrame1, STATE_CHEMS_RELEASES_FILENAME)
 
+	# releases only
 	myDataFrame2 = readData(STATE_RELEASES_FILENAME)
-	print(myDataFrame2.columns)
-	# cleanData(myDataFrame2, STATE_RELEASES_FILENAME)
+	cleanData(myDataFrame2, STATE_RELEASES_FILENAME)
 
 	print ("cleaning complete")
 
@@ -88,7 +87,7 @@ def cleanData(myDataFrame, file_name):
 	myDataFrame = myDataFrame[myDataFrame['0_count'] == 0]
 
 	# output cleaned data to csv
-	myDataFrame.to_csv("./cleaned/" + file_name + "_cleaned.csv")
+	myDataFrame.to_csv("./cleaned/" + file_name + "_cleaned.csv", index = False)
 
 
 if __name__ == '__main__':
