@@ -1,3 +1,6 @@
+#Alan Balu
+
+#import statements
 import numpy as np, math
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -8,6 +11,8 @@ from CdcClustering import separate_by_year
 from CdcClustering import scatterPlot
 from CdcClustering import normalizeCDC_byQuestion
 
+
+#separates CDC data by the type of cancer rate and returns dataframe with only those values
 def separateCDCData(CDC_Data):
 	print("separating data...")
 
@@ -19,7 +24,7 @@ def separateCDCData(CDC_Data):
 
 	return CDC_Data_AgeAR, CDC_Data_CrudeR, CDC_Data_Number
 
-
+#adds another column for the binned value of the cancer rate (uses the z score to figure out bin label). Returns modified dataframe
 def binRate(CDC_Data):
 	new_CDC_data = CDC_Data
 
@@ -35,11 +40,12 @@ def binRate(CDC_Data):
 		else:
 			return  'very low'
 	
+	#use a lambda function to apply the label
 	new_CDC_data['datavalue_level'] = new_CDC_data['datavalue'].apply(lambda x: categorization(x))
-        
-
+    
 	return new_CDC_data
 
+#Determines the region for a particualr state based on the timezone. Returns the region as a string.
 def categorization(value):
 	if value in ['CT', 'DE', 'FL', 'GA', 'IN', 'KY', 'ME', 'MI', 'MD', 'MA', 'PA', 'OH', 'WV','VA','NC', 'SC', 'NY', 'VT', 'NH', 'RI', 'DC','NJ']:
 		return 'EAST'
@@ -50,6 +56,7 @@ def categorization(value):
 	else:
 		return 'PACF'
 
+#abbreviates the state name into the two letter string. Returns this string.
 def abbreviate(value):
 
 	us_state_abbrev = {
@@ -112,20 +119,54 @@ def abbreviate(value):
 	try:
 		return us_state_abbrev[value]
 	except:
-		return "XX"
+		return "XX" #return XX if the state is not found
 
+
+#separates the cdc data by the region label (timezone dependent). return the modified dataframe with the region column added
 def separateByRegion(CDC_Data):
 
 	new_CDC_data = CDC_Data
 
-
+	#abbreviates the state name
 	new_CDC_data['locationdesc'] = new_CDC_data['locationdesc'].apply(lambda x: abbreviate(x))
 
-
+	#adds a new columns for the region
 	new_CDC_data['region'] = new_CDC_data['locationdesc'].apply(lambda x: categorization(x))
         
 	return new_CDC_data
 
+#does association rule mining given the data frame and support and confidence values
+def doAssociationRuleMining(CDC_Data, support_val = 0.1, confidence_val = 0.9):
+
+	asssociation_CDC_data = CDC_Data
+
+	CDC_records = []
+
+	support_min = support_val
+	confidence_min = confidence_val
+
+	CDC_records = []
+
+	#convert each record into a list of stirngs
+	for i in range(0, len(asssociation_CDC_data.index)):
+		CDC_records.append([str(asssociation_CDC_data.values[i,j]) for j in range(0, len(asssociation_CDC_data.columns))])
+
+	#pprint(CDC_records)
+
+	#run association rule mining
+	association_rules = apriori(CDC_records, min_support = support_min, min_confidence = confidence_min, length_min = 2)
+	association_results = list(association_rules)
+
+	#print the resutls
+	print("association rules results: \n")
+	#pprint(association_results)
+
+	print(CDC_Data.columns)
+
+	for item in association_results:
+		pprint(str(item.items) + " support: " + str(item.support))
+
+#runs association rule mining on the CDC_API_Clean data
 def main():
 	print('main')
 
@@ -135,22 +176,16 @@ def main():
 	CDC_Data_AgeAR, CDC_Data_CrudeR, CDC_Data_Number = separateCDCData(cleaned_CDC_Data)
 
 	cleaned_CDC_Data = CDC_Data_AgeAR.loc[CDC_Data_AgeAR.stratification1.str.contains("Overall")]
-	#cleaned_CDC_Data = CDC_Data_AgeAR.loc[CDC_Data_AgeAR.question.str.contains("mortality")]
 
 	region_CDC_Data = separateByRegion(cleaned_CDC_Data)
 
-	#keep question, year start, data value, locationdesc
-
+	#columns to remove from dataframe since they are the same for all rows or are redundant
 	columns_to_drop = ['yearend', 'stratificationcategory1', 'stratification1', 
 		'questionid', 'lowconfidencelimit', 'highconfidencelimit', 'geolocation','datavaluetype'] 
 
 	region_CDC_Data.drop(columns_to_drop, axis = 1, inplace = True)
 	region_CDC_Data.dropna(inplace = True)
 	region_CDC_Data = region_CDC_Data.loc[region_CDC_Data['locationdesc'] != 'XX']
-
-
-	#cleaned_CDC_Data.dropna(inplace = True)
-	#ENCODE DATA QUALITATIVELY by BINNING?
 
 	pprint(region_CDC_Data)
 
@@ -161,31 +196,16 @@ def main():
 
 	pprint(binnedRate_CDC_Data)
 
-	CDC_records = []
+	#test different support levels
+	print("support ", 0.1)
+	doAssociationRuleMining(binnedRate_CDC_Data, 0.1, 0.9)
 
-	support_min = 0.1
-	confidence_min = 0.9
-	lift_min = 1.2
-	length_min = 2
+	print("support ", 0.3)
+	doAssociationRuleMining(binnedRate_CDC_Data, 0.3, 0.2)
 
-	CDC_records = []
+	print("support ", 0.6)
+	doAssociationRuleMining(binnedRate_CDC_Data, 0.6, 0.3)
 
-	for i in range(0, len(binnedRate_CDC_Data.index)):
-		CDC_records.append([str(binnedRate_CDC_Data.values[i,j]) for j in range(0, len(binnedRate_CDC_Data.columns))])
-
-	#pprint(CDC_records)
-
-	association_rules = apriori(CDC_records, min_support = support_min, min_confidence = confidence_min, length_min = 2)
-	association_results = list(association_rules)
-	print("association rules results: \n")
-	#pprint(association_results)
-
-	for item in association_results:
-		pprint(str(item.items) + " support: " + str(item.support))
-
-	#scatterPlot(binnedRate_CDC_Data['yearstart'], binnedRate_CDC_Data['datavalue'], "question", "rate", "rate by question", 0)
-
-	
 if __name__ == '__main__':
 	main()
 
