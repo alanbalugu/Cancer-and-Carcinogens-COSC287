@@ -97,8 +97,7 @@ def decisionTree():
 	decision_tree.fit(X_train, Y_train)
 	decision_tree_predictions = decision_tree.predict(X_test)
 
-	print()
-	print(accuracy_score(Y_test, decision_tree_predictions))
+	print("accuracy_score = ", accuracy_score(Y_test, decision_tree_predictions))
 	print(confusion_matrix(Y_test, decision_tree_predictions))
 	print(classification_report(Y_test, decision_tree_predictions))
 
