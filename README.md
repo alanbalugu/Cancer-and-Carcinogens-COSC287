@@ -73,7 +73,7 @@ CDC Data:
         run cdc_api_statistics.py
 
     to generate NaiveBayes and RandomForest classification and other analysis for USCS:
-        run USCS_AlanChau_final.py
+        run FINAL_CDC_P2.py
 
     to generate heat maps comparing the regions for USCS:
         run CDC_regions_heatmaps.py

@@ -4,7 +4,7 @@ from pprint import pprint
 
 def main():
     #read data from epa state/chems release cleaned file into pandas dataframe
-    myDataFrame = pd.read_csv("epa_data_state_chems_and_releases_cleaned.csv", sep=',', encoding='latin1')
+    myDataFrame = pd.read_csv("./cleaned/epa_data_state_chems_and_releases_cleaned.csv", sep=',', encoding='latin1')
     #run function that sums up avg release estimates per state per year
     stateYearChem(myDataFrame)
 
