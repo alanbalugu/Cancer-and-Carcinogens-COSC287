@@ -128,8 +128,9 @@ def main():
 
 	old_columns_CDC_Data.rename(columns=dict_names, inplace=True)
 
-	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_CDC_data, "K", np.arange(30, 60, 1), silh_score_list, cluster_vals)
-	clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_CDC_data, "D", np.arange(0.3, 7.0, 0.2), silh_score_list, cluster_vals)
+	clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_CDC_data, "K", np.arange(30, 60, 1), silh_score_list, cluster_vals)
+	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_CDC_data, "H", np.arange(30, 60, 1), silh_score_list, cluster_vals)
+	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_CDC_data, "D", np.arange(0.3, 7.0, 0.2), silh_score_list, cluster_vals)
 
 	added_CDC_Data = clustered_CDC_data
 	added_CDC_Data = pd.concat([added_CDC_Data, old_columns_CDC_Data], axis = 1)
