@@ -19,13 +19,35 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.preprocessing import normalize
 from sklearn.preprocessing import LabelEncoder
 
-pd.set_option('display.max_rows', 5000)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 300)
+# pd.set_option('display.max_rows', 5000)
+# pd.set_option('display.max_columns', 500)
+# pd.set_option('display.width', 300)
+
+def normalizeCDC_byQuestion(CDC_data, feature_to_sort_by, feature_to_clean):
+
+	new_CDC_data = CDC_data.copy()
+
+	for each in new_CDC_data[feature_to_sort_by].unique():
+		#print(each)
+
+		#max_value = new_CDC_data.loc[cleaned_CDC_Data[feature_to_sort_by] == each][feature_to_clean].max()
+		#min_value = new_CDC_data.loc[cleaned_CDC_Data[feature_to_sort_by] == each][feature_to_clean].min()
+
+		#for z-score standardizing
+		stdv_value = new_CDC_data.loc[new_CDC_data[feature_to_sort_by] == each][feature_to_clean].std()
+		mean_value = new_CDC_data.loc[new_CDC_data[feature_to_sort_by] == each][feature_to_clean].mean()
+
+		#pprint(new_CDC_data.loc[new_CDC_data[feature_to_sort_by] == each])
+
+		new_CDC_data.loc[new_CDC_data[feature_to_sort_by] == each, feature_to_clean] = (new_CDC_data.loc[new_CDC_data[feature_to_sort_by] == each, feature_to_clean] - mean_value)/stdv_value
+
+		#pprint(new_CDC_data.loc[new_CDC_data[feature_to_sort_by] == each])
+
+	return new_CDC_data
 
 def doDBScan(CDC_Data, nearness, min_samples):
 
-	new_CDC_data = CDC_Data
+	new_CDC_data = CDC_Data.copy()
 
 	# Compute DBSCAN
 	dbscan = DBSCAN(eps=nearness, min_samples=min_samples).fit(new_CDC_data)
@@ -33,12 +55,25 @@ def doDBScan(CDC_Data, nearness, min_samples):
 	core_samples_mask[dbscan.core_sample_indices_] = True
 	labels = dbscan.labels_
 
-	new_CDC_data["cluster_labels"] = labels
+	#print(dbscan.labels_)
 
+	print(dbscan.labels_.tolist())
+
+	labels_list = []
+	for each in labels.tolist():
+		labels_list.append(str(each))
+
+	##doesn't work
+	new_CDC_data['cluster_labels'] = labels_list
+
+	#print(new_CDC_data)
+
+	#print(dbscan.labels_)
 	# Number of clusters in labels, ignoring noise if present.
 	n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
 	n_noise_ = list(labels).count(-1)
 
+	print("eps: ", nearness)
 	print('Estimated number of clusters: %d' % n_clusters_)
 	print('Estimated number of noise points: %d' % n_noise_)
 
@@ -80,7 +115,7 @@ def doHierarchical(CDC_Data, k):
 
 
 #drop unnecessary columns, one-hot encoding
-def preprocessing(CDC_Data, categories, columns_to_drop):
+def CDCpreprocessing(CDC_Data, categories, columns_to_drop):
 	
 	new_CDC_data = CDC_Data
 	list_of_dropped = []
@@ -121,7 +156,7 @@ def separateCDCData(CDC_Data):
 	return CDC_Data_AgeAR, CDC_Data_CrudeR, CDC_Data_Number
 
 
-def normalize(CDC_Data, columns_to_norm):
+def normalizeCDC(CDC_Data, columns_to_norm):
 
 	CDC_data_norm = CDC_Data
 
@@ -170,6 +205,7 @@ def cycleClustering(CDC_data, type_clus, range_list, silh_score_list, cluster_va
 
 	max_silh_score = 0
 	best_cluster = 1
+	min_samples = 4
 
 	normalized_CDC_Data = CDC_data
 
@@ -197,11 +233,11 @@ def cycleClustering(CDC_data, type_clus, range_list, silh_score_list, cluster_va
 	else:
 
 		best_cluster = 0.0
-		best_eps = 0.0
+		best_eps = 0.1
 
 		for i in range_list:
 			try:
-				clustered_CDC_data, silh_score, num_clusters = doDBScan(normalized_CDC_Data, i, 4)
+				clustered_CDC_data, silh_score, num_clusters = doDBScan(normalized_CDC_Data, i, min_samples)
 				cluster_vals.append(i)
 				silh_score_list.append(silh_score)
 
@@ -211,11 +247,14 @@ def cycleClustering(CDC_data, type_clus, range_list, silh_score_list, cluster_va
 				if (silh_score > max_silh_score):
 					max_silh_score = silh_score
 					best_eps = i
+
+				clustered_CDC_data = pd.DataFrame()
 					
 			except:
 				print("didn't work")
 
-		clustered_CDC_data, silh_score, num_clusters = doDBScan(normalized_CDC_Data, best_eps, 10)	
+		clustered_CDC_data, silh_score, num_clusters = doDBScan(CDC_data, best_eps, min_samples)
+		print("best eps: ", best_eps)	
 
 	print("best clusters: ", best_cluster)
 	print("max silh. score: ", max_silh_score)
@@ -223,7 +262,7 @@ def cycleClustering(CDC_data, type_clus, range_list, silh_score_list, cluster_va
 	return clustered_CDC_data, silh_score_list, cluster_vals
 
 
-def preprocessing2(CDC_Data, categories, columns_to_drop):
+def CDCpreprocessing2(CDC_Data, categories, columns_to_drop):
 
 	new_CDC_Data = CDC_Data
 
@@ -236,32 +275,40 @@ def preprocessing2(CDC_Data, categories, columns_to_drop):
 
 	return new_CDC_Data, old_columns_CDC_Data
 
-
 def main():
 	# Read in data directly into pandas
 	cleaned_CDC_Data = pd.read_csv('CDC_API_Clean.csv' , sep=',', encoding='latin1', index_col = 0)
+
+	#exclude values for indicidual races/categories to avoid bias. 
+	cleaned_CDC_Data = cleaned_CDC_Data.loc[cleaned_CDC_Data.stratification1.str.contains("Overall")]
+
 	#pprint(cleaned_CDC_Data)
 	CDC_Data_AgeAR, CDC_Data_CrudeR, CDC_Data_Number = separateCDCData(cleaned_CDC_Data)
 
-	#CDC_Data_Years = separate_by_year(CDC_Data_AgeAR, 2010)
-	CDC_Data_Years = CDC_Data_AgeAR.copy()
+	CDC_Data_Years = separate_by_year(CDC_Data_AgeAR, 2010)
+	#CDC_Data_Years = CDC_Data_AgeAR.copy()
+
+	normalized_CDC_Data = normalizeCDC_byQuestion(CDC_Data_Years, 'question', 'datavalue')
 
 	cat_columns = ['question']
 	drop_columns = ['yearend', 'stratificationcategory1', 'stratification1', 
 		'questionid', 'lowconfidencelimit', 'highconfidencelimit', 'geolocation','datavaluetype', 'locationdesc']   #don't drop the yearstart
 
 	#preprocess and encode only this data and drop other columns
-	CDC_Data_Years.dropna(inplace = True)
+	normalized_CDC_Data.dropna(inplace = True)
 
-	new_CDC_Data_Years = CDC_Data_Years.copy()
-	processed_CDC_Data, list_of_dropped, list_of_categ = preprocessing(new_CDC_Data_Years, cat_columns, drop_columns)
+	normalized_CDC_Data = normalizeCDC_byQuestion(normalized_CDC_Data, 'question', 'datavalue')  #normalize the CDC rates by question
+
+	#preprocess to do one-hot encoding
+	new_CDC_Data_Years = normalized_CDC_Data.copy()
+	processed_CDC_Data, list_of_dropped, list_of_categ = CDCpreprocessing(new_CDC_Data_Years, cat_columns, drop_columns)
 
 	#pprint(list_of_categ)
 
-	#columns to normalize
-	norm_columns = ['datavalue']
-	#normalize rate
-	normalized_CDC_Data = normalize(processed_CDC_Data, norm_columns)
+	#normalize rate based on each question separately
+	#normalized_CDC_Data = normalizeCDC_byQuestion(processed_CDC_Data, 'question', 'datavalue')
+
+	#normalized_CDC_Data = normalizeCDC(processed_CDC_Data, norm_columns)
 
 	#pprint(normalized_CDC_Data)
 	#print(normalized_CDC_Data.columns)
@@ -269,23 +316,29 @@ def main():
 	silh_score_list = []
 	cluster_vals = []
 
-	clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(normalized_CDC_Data, "K", np.arange(35, 40, 1), silh_score_list, cluster_vals)
-	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(normalized_CDC_Data, "D", np.arange(0.3, 10.0, 0.2), silh_score_list, cluster_vals)
+	pprint(processed_CDC_Data)
+
+	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_CDC_Data, "K", np.arange(35, 55, 1), silh_score_list, cluster_vals)
+	clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_CDC_Data, "D", np.arange(0.3, 10.0, 0.2), silh_score_list, cluster_vals)
 
 	added_CDC_Data = clustered_CDC_data
 	for series in list_of_categ:
 		added_CDC_Data = pd.concat([added_CDC_Data,  series], axis = 1)
 
-	added_CDC_Data = pd.concat([added_CDC_Data,  list_of_dropped[8]], axis = 1)
+	added_CDC_Data = pd.concat([added_CDC_Data,  list_of_dropped[8]], axis = 1)  #add back in state
 
-	'''
+	#CDC_data_alan, silh_score, num_clusters = doDBScan(processed_CDC_Data, 1.5, 4)
+	#scatterPlot(CDC_data_alan['cluster_labels'], CDC_data_alan['datavalue'], "cluster labels", "rate", "rate by alan cluster label", False)
+
+	#--------------------------------------------------------------------------
+
 	scatterPlot(cluster_vals, silh_score_list, "cluster size", "silh. score",'silhouette score by cluster size', False)
 
-	scatterPlot(clustered_CDC_data['cluster_labels'], clustered_CDC_data['datavalue'], "cluster labels", "rate", "rate by cluster label", False)
-
+	scatterPlot(added_CDC_Data['cluster_labels'], added_CDC_Data['datavalue'], "cluster labels", "rate", "rate by cluster label", False)
+	'''
 	scatterPlot(added_CDC_Data['question'], added_CDC_Data['datavalue'], "question", "rate", "rate by question", 0)
 
-	#pprint(CDC_Data_Years)
+	pprint(added_CDC_Data['cluster_labels'])
 
 	scatterPlot(added_CDC_Data['locationdesc'], added_CDC_Data['datavalue'], "state", "rate", "rate by state", 0)
 
@@ -294,29 +347,30 @@ def main():
 	scatterPlot(added_CDC_Data['cluster_labels'], added_CDC_Data['question'], "cluster labels", "question", "rate by question", 0)
 
 	scatterPlot(added_CDC_Data['cluster_labels'], added_CDC_Data['yearstart'], "cluster labels", "question", "rate by question", 0)
+	#-------------------------------------------------------------------------
 	'''
-	#------------------------------------------
+	new_CDC_Data_Years2 = normalized_CDC_Data.copy()
 
-	new_CDC_Data_Years2 = CDC_Data_Years.copy()
-
-	cat_columns = ['question', 'locationdesc']
-	drop_columns = ['yearend', 'yearstart', 'stratificationcategory1', 'stratification1', 
-		'questionid', 'lowconfidencelimit', 'highconfidencelimit', 'geolocation','datavaluetype']   #don't drop the yearstart
+	cat_columns = ['question']
+	drop_columns = ['yearend', 'stratificationcategory1', 'stratification1', 
+		'questionid', 'lowconfidencelimit', 'highconfidencelimit', 'geolocation','datavaluetype', 'locationdesc']   #don't drop the yearstart 'yearstart', 
 
 	#preprocess and encode only this data and drop other columns
-	CDC_Data_Years.dropna(inplace = True)
+	new_CDC_Data_Years2.dropna(inplace = True)
 
 	#label encode the columns that are categorical
-	processed_CDC_Data2, list_of_changed = preprocessing2(new_CDC_Data_Years2, cat_columns, drop_columns)
+	processed_CDC_Data2, list_of_changed = CDCpreprocessing2(new_CDC_Data_Years2, cat_columns, drop_columns)
 
 	#columns to normalize
 	norm_columns = ['datavalue']
 	#normalize rate
-	normalized_CDC_Data2 = normalize(processed_CDC_Data2, norm_columns)
+	normalized_CDC_Data2 = normalizeCDC(processed_CDC_Data2, norm_columns)
 
 	print("PCA on data label encoded WITHOUT clustering")
 
 	doPCA(normalized_CDC_Data2)
+
+	'''
 
 	#rename columns into data frame
 	list_of_changed.rename(columns={'question' : 'orig_question', 'locationdesc' : 'orig_locat'}, inplace = True)
@@ -330,6 +384,7 @@ def main():
 
 	pprint(normalized_CDC_Data2)
 	#create mapping dictionaries
+
 	i = 0
 	for unique_vals in normalized_CDC_Data2['orig_locat'].sort_values().unique():
 		state_mapping[i] = unique_vals
@@ -345,6 +400,7 @@ def main():
 
 	print(normalized_CDC_Data2.question.unique())
 	pprint(question_mapping)
+	'''
 
 	'''
 	CDC_Data_Years.to_csv(r'2010_CDC.csv', index = 1, header=True)
