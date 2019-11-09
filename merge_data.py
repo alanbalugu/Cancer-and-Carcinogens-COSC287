@@ -86,7 +86,7 @@ def insertCdcData(cdc_data, merged_frame):
 def mergeData():
 
 	epa_data = pd.read_csv("./EPA/cleaned/epa_data_state_releases_cleaned.csv", sep=',', encoding='latin1')
-	cdc_data = pd.read_csv("./CDC/CDC_DOWNLOAD.csv", sep=',', encoding='latin1')
+	cdc_data = pd.read_csv("./CDC/USCS_CancerTrends_OverTime_ByState.csv", sep=',', encoding='latin1')
 
 	# adds years and states to dataframe
 	merged_frame = createDataFrameTemplate(epa_data)
