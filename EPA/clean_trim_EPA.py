@@ -72,7 +72,7 @@ def dropOutliers(myDataFrame):
 
 	myDataFrame['OUTLIER'] = outlier_list
 	myDataFrame = myDataFrame[myDataFrame['OUTLIER']==False]
-	myDataFrame = myDataFrame.drop('OUTLIER',axis=1)
+	# myDataFrame = myDataFrame.drop('OUTLIER',axis=1)
 	print("total outliers removed: " + str(total_outliers_AVG_EST) + "\n")
 
 	return myDataFrame
