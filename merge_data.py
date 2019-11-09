@@ -91,6 +91,7 @@ def mergeData():
 	# adds years and states to dataframe
 	merged_frame = createDataFrameTemplate(epa_data)
 
+	print("please wait...takes ~1-2 mins to run")
 	# PREP EPA DATA
 	# split category column containing release types into seperate columns for each release type using one-hot encoding
 	epa_data, new_cols_list, release_type_list = epaOneHotEncoding(epa_data)
