@@ -75,6 +75,7 @@ def insertCdcData(cdc_data, merged_frame):
 		year = merged_frame.loc[row_index, 'YEAR']
 		try:
 			merged_frame.at[row_index,'AGE_ADJUSTED_CANCER_RATE'] = cdc_data[(cdc_data['Area']==state) & (cdc_data['Year']==year) ] ['AgeAdjustedRate']
+			merged_frame.at[row_index,'POPULATION'] = cdc_data[(cdc_data['Area']==state) & (cdc_data['Year']==year) ] ['Population']
 		
 		# year/state combo not found in cdc data. can be ignored
 		except:	
@@ -82,6 +83,11 @@ def insertCdcData(cdc_data, merged_frame):
 
 		row_index+=1 
 	return merged_frame
+
+def calculatePerCapitaPollution(merged_frame):
+	merged_frame['AVG_REL_EST_TOTAL_PER_CAPITA'] = merged_frame['AVG_REL_EST_TOTAL'] / merged_frame['POPULATION']
+	return merged_frame
+
 	
 def mergeData():
 
@@ -101,6 +107,9 @@ def mergeData():
 	
 	# INSERT CDC DATA INTO MERGED FRAME
 	merged_frame = insertCdcData(cdc_data, merged_frame)
+
+	# CALCULATE PER CAPITA POLLUTION
+	merged_frame = calculatePerCapitaPollution(merged_frame)
 
 	# output final merged data frame
 	merged_frame.to_csv("merged_data.csv", index=False)
