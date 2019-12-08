@@ -130,28 +130,6 @@ def stateWideCorrel(merged_data, data_label1, data_label2):
 
 	return lin_reg_matrix
 
-#makes a heatmap of the correlations between regions given the dataframe
-def makeHeatMap_corr(binned_CDC_Data):
-
-	lin_reg_matrix = [ [] for i in range(4) ]
-
-	lin_reg_values = doLinearReg(binned_CDC_Data)
-
-	#creates a matrix of the correlation values
-	counter = 0
-	counter2 = 0
-	for each in lin_reg_values:
-		lin_reg_matrix[counter].append(lin_reg_values[counter2])
-		counter2 += 1
-		if(counter2%4 == 0):   # 4 means 4 regions
-			counter += 1
-
-	#prints matrix
-	pprint(lin_reg_matrix)
-
-	#generate heat map and display
-	heatMap(" of cancer rate correlation over time between regions", lin_reg_matrix, list(binned_CDC_Data['region'].unique()), list(binned_CDC_Data['region'].unique()))
-
 #make a heat map given the title, matrix, axes labels, and color scheme
 def heatMap(year_str, matrix, x_axis, y_axis, cbar_kw={}):
 
@@ -170,7 +148,7 @@ def heatMap(year_str, matrix, x_axis, y_axis, cbar_kw={}):
 	ax.set_yticklabels(y_axis)
 
 	#Rotate the tick labels and set their alignment.
-	plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+	plt.setp(ax.get_xticklabels(), rotation=90, ha="right",
 	         rotation_mode="anchor")
 
 	#make the heat map plot
@@ -194,7 +172,7 @@ def heatMap(year_str, matrix, x_axis, y_axis, cbar_kw={}):
 	ax.set_xticks(np.arange(heat_map.shape[1]+1)-.5, minor=True)
 	ax.set_yticks(np.arange(heat_map.shape[0]+1)-.5, minor=True)
 	ax.grid(which="minor", color="w", linestyle='-', linewidth=0)
-	ax.tick_params(which="minor", bottom=False, left=False)
+	ax.tick_params(which="both", bottom=False, left=False, labelsize = 7)
 
 	#ad the color bar on the side with the heat range
 	cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
@@ -203,8 +181,9 @@ def heatMap(year_str, matrix, x_axis, y_axis, cbar_kw={}):
 	#display the heatmap
 	fig.tight_layout()
 	#plt.savefig("heatmap"+year_str+'.png')
-	plt.show()
-	plt.clf()
+	#plt.show()
+	plt.savefig("heatmap"+year_str+'.png')
+	plt.clf()		
 
 
 #main driver program to make heat maps for t-test results and cross-correlogram from linear regressions 
@@ -212,7 +191,7 @@ def main():
 	print("main")
 
 	# Read in data directly into pandas
-	merged_data = pd.read_csv('merged_data.csv' , sep=',', encoding='latin1')
+	merged_data = pd.read_csv('merged_data2.csv' , sep=',', encoding='latin1')
 
 	new_data = merged_data.copy()
 	region_data = separateByRegion(new_data)
@@ -225,7 +204,7 @@ def main():
 	#pd.plotting.scatter_matrix(region_data)
 	#plt.show()
 
-	region_data = region_data.loc[:, region_data.columns.intersection(['YEAR', 'REGION', 'STATE_ABBR', 'AVG_REL_EST_TOTAL', 'AGE_ADJUSTED_CANCER_RATE'])]
+	region_data = region_data.loc[:, region_data.columns.intersection(['YEAR', 'REGION', 'STATE_ABBR', 'AVG_REL_EST_TOTAL_PER_CAPITA', 'AGE_ADJUSTED_CANCER_RATE'])]
 	region_data.dropna(inplace = True)
 	#region_data.sort_values(by=['REGION'], inplace = True)
 
@@ -234,7 +213,7 @@ def main():
 		#new_data = region_data
 
 		series2 = new_data['AGE_ADJUSTED_CANCER_RATE']
-		series1 = new_data['AVG_REL_EST_TOTAL'].apply(np.log10)
+		series1 = new_data['AVG_REL_EST_TOTAL_PER_CAPITA']   #.apply(np.log10)
 
 		#scatterPlot(series1, series2, "total chemical", "cancer rate", "scatter " + str(year), False)
 		plt.clf()

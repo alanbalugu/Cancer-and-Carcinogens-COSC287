@@ -96,11 +96,18 @@ def makeDendrogram(linked, labelList):
 	#labelList = range(0, len(processed_data["AVG_REL_EST_TOTAL"]))
 	plt.clf()
 	#plt.figure(figsize=(10, 7))
+	ax = plt.axes()
 	dendrogram(linked,
 	            orientation='top',
 	            labels=labelList,
 	            distance_sort='descending',
 	            show_leaf_counts=True)
+
+	plt.xlabel("Data Points")
+	plt.ylabel("Height")
+	ax.set_xticklabels([])
+	ax.tick_params(which="both", bottom=False, left=True, labelsize = 10)
+
 	plt.show()
 
 
@@ -108,15 +115,23 @@ def main():
 
 	print("main")
 
-	merged_data = pd.read_csv('merged_data.csv' , sep=',', encoding='latin1')
+	merged_data = pd.read_csv('merged_data2.csv' , sep=',', encoding='latin1')
 
-	red_data = pd.concat([merged_data["YEAR"], merged_data["STATE_ABBR"], merged_data["AVG_REL_EST_TOTAL"], merged_data["AGE_ADJUSTED_CANCER_RATE"]], axis = 1)
+	red_data = pd.concat([merged_data["YEAR"], merged_data["STATE_ABBR"], merged_data["AVG_REL_EST_TOTAL_PER_CAPITA"], merged_data["AGE_ADJUSTED_CANCER_RATE"]], axis = 1)
 
 	#pprint(red_data)
 
+	orig_chemicals = red_data['AVG_REL_EST_TOTAL_PER_CAPITA']
+	orig_chemicals.dropna(inplace = True)
+	orig_chemicals.rename("AVG_REL_EST_TOTAL_PER_CAPITA_ORIG", inplace = True)
+
+	orig_cancer = red_data['AGE_ADJUSTED_CANCER_RATE']
+	orig_cancer.dropna(inplace = True)
+	orig_cancer.rename("AGE_ADJUSTED_CANCER_RATE_ORIG", inplace = True)
+
 	region_data = separateByRegion(red_data, 'STATE_ABBR', True)
 
-	norm_data = normalizeCDC_byQuestion(region_data, "YEAR",'AVG_REL_EST_TOTAL')
+	norm_data = normalizeCDC_byQuestion(region_data, "YEAR",'AVG_REL_EST_TOTAL_PER_CAPITA')
 	norm_data = normalizeCDC_byQuestion(norm_data, "YEAR",'AGE_ADJUSTED_CANCER_RATE')
 
 	norm_data.dropna(inplace = True)
@@ -124,7 +139,7 @@ def main():
 	#pprint(norm_data)
 	cluster_data = norm_data.copy()
 
-	binned_data = binRate(norm_data, 'AVG_REL_EST_TOTAL')  #now datavalue_level is the bin label
+	binned_data = binRate(norm_data, 'AVG_REL_EST_TOTAL_PER_CAPITA')  #now datavalue_level is the bin label
 	binned_data = binRate(norm_data, 'AGE_ADJUSTED_CANCER_RATE')  #now datavalue_level is the bin label
 
 	region_series = norm_data['region']
@@ -137,16 +152,14 @@ def main():
 
 	pprint(processed_data)
 
-
-	cluster_type = "K"
+	cluster_type = "H"
 
 	silh_score_list = []
 	cluster_vals = []
 
-	clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(10, 30, 1), silh_score_list, cluster_vals)
-	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(20, 35, 1), silh_score_list, cluster_vals)
+	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(15, 35, 1), silh_score_list, cluster_vals)
+	clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(15, 35, 1), silh_score_list, cluster_vals)
 	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "D", np.arange(0.3, 7.0, 0.2), silh_score_list, cluster_vals)
-
 
 	dict_names = {}
 	for column in orig_data.columns:
@@ -157,6 +170,7 @@ def main():
 	added_CDC_Data = clustered_CDC_data
 	added_CDC_Data = pd.concat([added_CDC_Data, orig_data], axis = 1)
 	added_CDC_Data = pd.concat([added_CDC_Data, year_series, region_series], axis = 1)
+	added_CDC_Data = pd.concat([added_CDC_Data, orig_cancer, orig_chemicals], axis = 1)
 	added_CDC_Data.dropna(inplace = True)
 
 	#convert into integers
@@ -164,20 +178,21 @@ def main():
 	#print(cluster_labels_list)
 	#pprint(added_CDC_Data)
 
-	cluster_type = ""
+	pprint(added_CDC_Data)
+
 	#plot the clusters with differet axes to visualize clustering. Plots the normalized cancer rate by different variables
-	scatterPlot(cluster_vals, silh_score_list, "cluster size", "silh. score",'silhouette score by cluster size'+cluster_type, False)
-	scatterPlot2(added_CDC_Data['YEAR'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE'], "year", "rate", "rate by year "+cluster_type, False, cluster_labels_list)
-	scatterPlot2(added_CDC_Data['region'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE'], "state", "rate", "rate by state"+cluster_type, False, cluster_labels_list)
-	scatterPlot2(added_CDC_Data['AVG_REL_EST_TOTAL'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE'], "region", "rate", "rate by region"+cluster_type, False, cluster_labels_list)
-	scatterPlot2(added_CDC_Data['STATE_ABBR_Orig'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE'], "rate bin", "rate", "rate by rate bin"+cluster_type, False, cluster_labels_list)
+	scatterPlot(cluster_vals, silh_score_list, "Cluster Size", "Silhouette Score",'silhouette score by cluster size '+cluster_type, True)
+	#scatterPlot2(added_CDC_Data['YEAR'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Year", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by year "+cluster_type, True, cluster_labels_list)
+	#scatterPlot2(added_CDC_Data['region'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Timezone Region", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by region "+cluster_type, True, cluster_labels_list)
+	#scatterPlot2(added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Chemical Pollution Release Per Capita", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by pollution "+cluster_type, True, cluster_labels_list)
+	#scatterPlot2(added_CDC_Data['STATE_ABBR_Orig'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "US States", "Age Adjusted Cancer Rate (per 100,000 people)", "rate by state "+cluster_type, True, cluster_labels_list)
 	
 	#----------------------------------------------------------------
 
 	new_Data, silh_score = doHierarchical(processed_data, 25)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
 	print("silhouette score: ", silh_score)
 
-	#makeDendrogram(linkage(processed_data, 'single'), range(0, len(processed_data["AVG_REL_EST_TOTAL"])))
+	makeDendrogram(linkage(processed_data, 'single'), range(0, len(processed_data["AVG_REL_EST_TOTAL_PER_CAPITA"])))
 
 if __name__ == '__main__':
 	main()

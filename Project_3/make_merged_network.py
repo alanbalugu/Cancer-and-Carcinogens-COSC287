@@ -99,8 +99,8 @@ def getWeights(final_network, network_df, normalized_data):
 		print(correl)
 		weight += correl*correl_cancer_weight
 
-		series1 = normalized_data[normalized_data["STATE_ABBR"] == state1]['AVG_REL_EST_TOTAL']
-		series2 = normalized_data[normalized_data["STATE_ABBR"] == state2]['AVG_REL_EST_TOTAL']
+		series1 = normalized_data[normalized_data["STATE_ABBR"] == state1]['AVG_REL_EST_TOTAL_PER_CAPITA']
+		series2 = normalized_data[normalized_data["STATE_ABBR"] == state2]['AVG_REL_EST_TOTAL_PER_CAPITA']
 
 		correl = 0.00
 
@@ -129,25 +129,25 @@ def getWeights(final_network, network_df, normalized_data):
 def main():
 	print("main")
 
-	merged_data = pd.read_csv('merged_data.csv' , sep=',', encoding='latin1')
+	merged_data = pd.read_csv('merged_data2.csv' , sep=',', encoding='latin1')
 
 	new_data = merged_data.copy()
 	region_data = separateByRegion(new_data)  #adds region column
 
-	region_data = region_data.loc[:, region_data.columns.intersection(['YEAR', 'REGION', 'STATE_ABBR', 'AVG_REL_EST_TOTAL', 'AGE_ADJUSTED_CANCER_RATE'])]
+	region_data = region_data.loc[:, region_data.columns.intersection(['YEAR', 'REGION', 'STATE_ABBR', 'AVG_REL_EST_TOTAL_PER_CAPITA', 'AGE_ADJUSTED_CANCER_RATE'])]
 	region_data.dropna(inplace = True)
 
 	cancer_series = region_data["AGE_ADJUSTED_CANCER_RATE"]
-	chemical_series = region_data["AVG_REL_EST_TOTAL"]
+	chemical_series = region_data["AVG_REL_EST_TOTAL_PER_CAPITA"]
 
-	region_data.rename(columns={"AGE_ADJUSTED_CANCER_RATE": "AGE_ADJUSTED_CANCER_RATE_ORIG", "AVG_REL_EST_TOTAL": "AVG_REL_EST_TOTAL_ORIG"}, inplace = True)
+	region_data.rename(columns={"AGE_ADJUSTED_CANCER_RATE": "AGE_ADJUSTED_CANCER_RATE_ORIG", "AVG_REL_EST_TOTAL_PER_CAPITA": "AVG_REL_EST_TOTAL_ORIG"}, inplace = True)
 
 	normalized_data = normalize_byQuestion(region_data, 'YEAR', 'AGE_ADJUSTED_CANCER_RATE_ORIG')
 	normalized_data = normalize_byQuestion(normalized_data, 'YEAR', 'AVG_REL_EST_TOTAL_ORIG')
 
 	normalized_data = pd.concat([normalized_data, cancer_series, chemical_series], axis = 1)
 
-	normalized_data.rename(columns={"AGE_ADJUSTED_CANCER_RATE": "AGE_ADJUSTED_CANCER_RATE", "AVG_REL_EST_TOTAL": "AVG_REL_EST_TOTAL"}, inplace = True)
+	normalized_data.rename(columns={"AGE_ADJUSTED_CANCER_RATE": "AGE_ADJUSTED_CANCER_RATE", "AVG_REL_EST_TOTAL_PER_CAPITA": "AVG_REL_EST_TOTAL_PER_CAPITA"}, inplace = True)
 	normalized_data.rename(columns={"AGE_ADJUSTED_CANCER_RATE_ORIG": "AGE_ADJUSTED_CANCER_RATE_Z", "AVG_REL_EST_TOTAL_ORIG": "AVG_REL_EST_TOTAL_Z"}, inplace = True)
 
 
@@ -155,7 +155,7 @@ def main():
 
 	# 51 by 51 matrices (50 states + DC)
 	#cancer_correlations_matrix = stateWideCorrel(normalized_data, 'AGE_ADJUSTED_CANCER_RATE')  #(region_data (sorted), 'AGE_ADJUSTED_CANCER_RATE'):    lin_reg_matrix
-	#chemical_correlations_matrix = stateWideCorrel(normalized_data, 'AVG_REL_EST_TOTAL')  #(region_data (sorted), 'AGE_ADJUSTED_CANCER_RATE'):    lin_reg_matrix
+	#chemical_correlations_matrix = stateWideCorrel(normalized_data, 'AVG_REL_EST_TOTAL_PER_CAPITA')  #(region_data (sorted), 'AGE_ADJUSTED_CANCER_RATE'):    lin_reg_matrix
 
 	network_df = pd.DataFrame()
 
@@ -188,6 +188,8 @@ def main():
 	network_df['CHEMICAL_LEVEL'] = mode_chemical
 	network_df['CANCER_LEVEL'] = mode_cancer
 
+	network_df.to_csv("network_df.csv")   #has full connectivity
+
 	#pprint(network_df)
 
 	#--------------------------------------
@@ -196,10 +198,23 @@ def main():
 		data=list(combinations(network_df.index.tolist(), 2)), 
 		columns=['Src', 'Dst'])
 
+
+	states_df = pd.concat([network_df["STATE_ABBR"]], axis = 1)
+	states_dict = states_df.to_dict('index')
+	new_states_dict = {}   #dictionary
+	counter = 0
+	for item in states_dict:
+		new_states_dict[counter] = states_dict.get(item).get("STATE_ABBR")
+		counter += 1
+
 	final_weights = getWeights(final_network, network_df, normalized_data)
 	print(final_weights)
 
 	final_network['Wght'] = final_weights
+
+	final_network.replace(new_states_dict, inplace = True)
+
+	#final_network['Src'].apply(lambda x: new_states_dict.get('')
 
 	pprint(final_network)
 
