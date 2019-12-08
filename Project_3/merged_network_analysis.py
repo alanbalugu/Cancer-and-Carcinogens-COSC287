@@ -158,7 +158,7 @@ def main():
 	print(partition)
 
 	things = [partition.get(item) for item in partition]
-	print("number of clusters: ", max(things)+1)
+	print("number of clusters: ", max(things)-1)
 	print("average clustering coefficient: ", nx.average_clustering(merged_graph))
 
 	# Get the values for the clusters and select the node color based on the cluster value

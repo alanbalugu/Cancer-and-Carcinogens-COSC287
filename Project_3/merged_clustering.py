@@ -53,6 +53,8 @@ from AssociationRuleMining import categorization
 from AssociationRuleMining import abbreviate
 from AssociationRuleMining import doAssociationRuleMining
 
+import plotly.express as px
+
 #separates the cdc data by the column for the state and returns the dataframe with the region column based on state timezone. Abbreviates state name if necessary
 def separateByRegion(CDC_Data, state_label, has_abbrev):
 
@@ -111,6 +113,40 @@ def makeDendrogram(linked, labelList):
 	plt.show()
 
 
+#creates a scatter plot and color codes the values by cluster labels if that parameter is passed in
+def scatterPlot3(X_Data, Y_Data, labels, x_axis, y_axis, title, save, clusterLabels = None):
+	
+	plt.figure(1, figsize = (6,8))
+
+	ax = plt.axes()
+
+
+	if (clusterLabels != None):
+		plt.scatter(X_Data, Y_Data, s=20, cmap = 'rainbow', c=clusterLabels)
+	else:
+		plt.scatter(X_Data, Y_Data, s=20)
+
+	plt.title(title)
+	plt.xlabel(x_axis)
+	plt.ylabel(y_axis)
+
+	ax.tick_params(which="both", bottom=False, left=False, labelsize = 7)
+	plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
+
+	for i, state in enumerate(labels):
+		x = X_Data[i]
+		y = Y_Data[i]
+		plt.text(x + 0.02, y + 0.02, state, fontsize = 9)
+
+	if (save == True):
+		plt.savefig(title + '.png')
+		plt.clf()
+	else:
+		plt.show()
+		plt.clf()
+
+
+
 def main():
 
 	print("main")
@@ -119,7 +155,7 @@ def main():
 
 	red_data = pd.concat([merged_data["YEAR"], merged_data["STATE_ABBR"], merged_data["AVG_REL_EST_TOTAL_PER_CAPITA"], merged_data["AGE_ADJUSTED_CANCER_RATE"]], axis = 1)
 
-	#pprint(red_data)
+	pprint(red_data)
 
 	orig_chemicals = red_data['AVG_REL_EST_TOTAL_PER_CAPITA']
 	orig_chemicals.dropna(inplace = True)
@@ -157,8 +193,9 @@ def main():
 	silh_score_list = []
 	cluster_vals = []
 
+	pprint(processed_data.columns)
 	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(15, 35, 1), silh_score_list, cluster_vals)
-	clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(15, 35, 1), silh_score_list, cluster_vals)
+	clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(15, 20, 1), silh_score_list, cluster_vals)
 	#clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "D", np.arange(0.3, 7.0, 0.2), silh_score_list, cluster_vals)
 
 	dict_names = {}
@@ -178,26 +215,104 @@ def main():
 	#print(cluster_labels_list)
 	#pprint(added_CDC_Data)
 
-	pprint(added_CDC_Data)
-
-	import plotly.express as px
-	fig = px.scatter_3d(x=added_CDC_Data['YEAR'], y=added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], z=added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA'],
-	          color=cluster_labels_list)
-	fig.show()
+	#pprint(added_CDC_Data)
 
 	#plot the clusters with differet axes to visualize clustering. Plots the normalized cancer rate by different variables
-	# scatterPlot(cluster_vals, silh_score_list, "Cluster Size", "Silhouette Score",'silhouette score by cluster size '+cluster_type, True)
+	#scatterPlot(cluster_vals, silh_score_list, "Cluster Size", "Silhouette Score",'silhouette score by cluster size '+cluster_type, True)
 	#scatterPlot2(added_CDC_Data['YEAR'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Year", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by year "+cluster_type, True, cluster_labels_list)
 	#scatterPlot2(added_CDC_Data['region'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Timezone Region", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by region "+cluster_type, True, cluster_labels_list)
 	#scatterPlot2(added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Chemical Pollution Release Per Capita", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by pollution "+cluster_type, True, cluster_labels_list)
-	#scatterPlot2(added_CDC_Data['STATE_ABBR_Orig'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "US States", "Age Adjusted Cancer Rate (per 100,000 people)", "rate by state "+cluster_type, True, cluster_labels_list)
+	#scatterPlot2(added_CDC_Data['STATE_ABBR_Orig'], added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'], "US States", "Average Chemical Release Estimate Per Capita", "rate by state "+cluster_type, True, cluster_labels_list)
 	
+	# fig = px.scatter_3d(x = added_CDC_Data['STATE_ABBR_Orig'], y = added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], z = added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'], color = cluster_labels_list)
+	# fig.show()
+
 	#----------------------------------------------------------------
 
 	new_Data, silh_score = doHierarchical(processed_data, 25)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
 	print("silhouette score: ", silh_score)
 
-	# makeDendrogram(linkage(processed_data, 'single'), range(0, len(processed_data["AVG_REL_EST_TOTAL_PER_CAPITA"])))
+	#--------------------------------------
+
+	new_clust_df = pd.DataFrame()
+
+	new_clust_df["STATE_ABBR"] = processed_data["STATE_ABBR"].unique()
+
+	state_series = new_clust_df["STATE_ABBR"].unique()
+
+	state_avg_cancer = []
+	state_avg_chem = []
+
+	processed_data = pd.concat([processed_data, orig_cancer, orig_chemicals, year_series], axis = 1)
+
+	year_series = []
+	#pprint(processed_data)
+
+	processed_data.dropna(inplace = True)
+
+	for state in processed_data["STATE_ABBR"].unique():
+		state_avg_cancer.append( processed_data.loc[processed_data['STATE_ABBR'] == state]['AGE_ADJUSTED_CANCER_RATE_ORIG'].mean() )
+		state_avg_chem.append( processed_data.loc[processed_data['STATE_ABBR'] == state]['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'].mean() )
+		#year_series.append(processed_data.loc[processed_data['STATE_ABBR'] == state]["YEAR"].unique())
+
+	#pprint(year_series)
+
+	new_clust_df["AGE_ADJUSTED_CANCER_RATE"] = state_avg_cancer
+	new_clust_df["AVG_REL_EST_TOTAL_PER_CAPITA"] = state_avg_chem
+
+	silh_score_list = []
+	cluster_vals = []
+
+	#typeCluster = ""
+	new_clust_data, silh_score = doHierarchical(new_clust_df, 6)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
+	new_clust_data2, silh_score = doKMeans(new_clust_df, 6)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
+
+	print("silhouette score: ", silh_score)
+
+	state_data = pd.Series(orig_data['STATE_ABBR_Orig'].unique())
+	state_data.rename('STATE_ABBR_Orig', inplace = True)
+
+	#new_clust_data['YEAR'] = year_series
+
+	new_clust_data = pd.concat([new_clust_data, state_data], axis = 1)
+	new_clust_data2 = pd.concat([new_clust_data2, state_data], axis = 1)
+
+	cluster_labels_list2 = new_clust_data['cluster_labels'].astype(int).tolist()
+	cluster_labels_list3 = new_clust_data2['cluster_labels'].astype(int).tolist()
+
+	pprint(new_clust_data)
+
+	#fig = px.scatter_3d(x = new_clust_data['STATE_ABBR'], y = new_clust_data['AGE_ADJUSTED_CANCER_RATE'], z = new_clust_data['AVG_REL_EST_TOTAL_PER_CAPITA'], color = cluster_labels_list2, color_continuous_scale = "RdBu")
+	#fig = px.scatter(x = new_clust_data['AGE_ADJUSTED_CANCER_RATE'], y = new_clust_data['AVG_REL_EST_TOTAL_PER_CAPITA'], color = cluster_labels_list2, color_continuous_scale = "RdBu")
+	
+	#fig.show()
+	#fig.write_html('3D_clustering.html', auto_play = True)
+
+	scatterPlot3(new_clust_data['AGE_ADJUSTED_CANCER_RATE'], new_clust_data['AVG_REL_EST_TOTAL_PER_CAPITA'], new_clust_data['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "H", True, cluster_labels_list2)
+	scatterPlot3(new_clust_data2['AGE_ADJUSTED_CANCER_RATE'], new_clust_data2['AVG_REL_EST_TOTAL_PER_CAPITA'], new_clust_data['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "K", True, cluster_labels_list3)
+
+
+	# #clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(15, 35, 1), silh_score_list, cluster_vals)
+	# clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(15, 35, 1), silh_score_list, cluster_vals)
+	# #clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "D", np.arange(0.3, 7.0, 0.2), silh_score_list, cluster_vals)
+
+	# dict_names = {}
+	# for column in orig_data.columns:
+	# 	dict_names[column] = (column + "_Orig")
+
+	# orig_data.rename(columns=dict_names, inplace=True)
+
+	# added_CDC_Data = clustered_CDC_data
+	# added_CDC_Data = pd.concat([added_CDC_Data, orig_data], axis = 1)
+	# added_CDC_Data = pd.concat([added_CDC_Data, year_series, region_series], axis = 1)
+	# added_CDC_Data = pd.concat([added_CDC_Data, orig_cancer, orig_chemicals], axis = 1)
+	# added_CDC_Data.dropna(inplace = True)
+
+	#----------------------------------------
+
+	new_clust_data.drop(['STATE_ABBR_Orig'], axis = 1, inplace = True)
+
+	makeDendrogram(linkage(new_clust_data, 'single'), range(0, len(new_clust_data["AVG_REL_EST_TOTAL_PER_CAPITA"])))
 
 if __name__ == '__main__':
 	main()
