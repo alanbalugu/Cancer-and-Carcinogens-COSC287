@@ -180,8 +180,13 @@ def main():
 
 	pprint(added_CDC_Data)
 
+	import plotly.express as px
+	fig = px.scatter_3d(x=added_CDC_Data['YEAR'], y=added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], z=added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA'],
+	          color=cluster_labels_list)
+	fig.show()
+
 	#plot the clusters with differet axes to visualize clustering. Plots the normalized cancer rate by different variables
-	scatterPlot(cluster_vals, silh_score_list, "Cluster Size", "Silhouette Score",'silhouette score by cluster size '+cluster_type, True)
+	# scatterPlot(cluster_vals, silh_score_list, "Cluster Size", "Silhouette Score",'silhouette score by cluster size '+cluster_type, True)
 	#scatterPlot2(added_CDC_Data['YEAR'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Year", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by year "+cluster_type, True, cluster_labels_list)
 	#scatterPlot2(added_CDC_Data['region'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Timezone Region", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by region "+cluster_type, True, cluster_labels_list)
 	#scatterPlot2(added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Chemical Pollution Release Per Capita", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by pollution "+cluster_type, True, cluster_labels_list)
@@ -192,7 +197,7 @@ def main():
 	new_Data, silh_score = doHierarchical(processed_data, 25)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
 	print("silhouette score: ", silh_score)
 
-	makeDendrogram(linkage(processed_data, 'single'), range(0, len(processed_data["AVG_REL_EST_TOTAL_PER_CAPITA"])))
+	# makeDendrogram(linkage(processed_data, 'single'), range(0, len(processed_data["AVG_REL_EST_TOTAL_PER_CAPITA"])))
 
 if __name__ == '__main__':
 	main()

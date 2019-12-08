@@ -26,6 +26,8 @@ def progressive_download(table_name, year_start, year_end, output_format, output
 		full_url = generate_epa_url_year(table_name, year_start, output_format)
 		
 		# print("requesting: " + full_url)
+		print(full_url)
+		exit(0)
 		response = requests.get(full_url)
 		
 		decoded_content = response.content.decode('utf-8')	# cleans it to be a nice string in csv format
