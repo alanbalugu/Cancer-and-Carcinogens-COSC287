@@ -181,7 +181,7 @@ def usaMap2(loc, var, color, title):
 
 	filename = 'usamap_'+title.replace(' ','_')+'.html'
 	fig.show()
-	# fig.write_html(filename, auto_open=True)
+	fig.write_html(filename, auto_open=True)
 
 
 def main():
@@ -322,12 +322,7 @@ def main():
 	scatterPlot3(new_cluster_data_hierarchical['AGE_ADJUSTED_CANCER_RATE'], new_cluster_data_hierarchical['AVG_REL_EST_TOTAL_PER_CAPITA'], new_cluster_data_hierarchical['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "H", True, cluster_labels_hier)
 	scatterPlot3(new_clust_data_k_means['AGE_ADJUSTED_CANCER_RATE'], new_clust_data_k_means['AVG_REL_EST_TOTAL_PER_CAPITA'], new_cluster_data_hierarchical['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "K", True, cluster_labels_kmeans)
 	
-	# print(new_cluster_data_hierarchical.head())
-	# print(len(processed_data["STATE_ABBR"].unique()))
-	# print(len(new_cluster_data_hierarchical['cluster_labels']))
-	# exit()
-	# print(norm_data["STATE_ABBR"].unique())
-	# print(len(norm_data["STATE_ABBR"].unique()))
+
 	usaMap2(norm_data["STATE_ABBR"].unique(), new_clust_data_k_means['cluster_labels'], 'rainbow', "K Means Clusters (n = 6)")
 
 	# #clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(15, 35, 1), silh_score_list, cluster_vals)
