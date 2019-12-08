@@ -53,7 +53,9 @@ from AssociationRuleMining import categorization
 from AssociationRuleMining import abbreviate
 from AssociationRuleMining import doAssociationRuleMining
 
+# PLOTLY
 import plotly.express as px
+import plotly.graph_objs as go
 
 #separates the cdc data by the column for the state and returns the dataframe with the region column based on state timezone. Abbreviates state name if necessary
 def separateByRegion(CDC_Data, state_label, has_abbrev):
@@ -65,7 +67,7 @@ def separateByRegion(CDC_Data, state_label, has_abbrev):
 		new_CDC_data[state_label] = new_CDC_data[state_label].apply(lambda x: abbreviate(x))
 
 		new_CDC_data['region'] = new_CDC_data[state_label].apply(lambda x: categorization(x))
-	        
+			
 		return new_CDC_data
 
 	else:
@@ -90,7 +92,7 @@ def binRate(CDC_Data, data_label):
 	
 	#apply the binning and create the new columns
 	new_CDC_data[str(data_label + "_bin")] = new_CDC_data[data_label].apply(lambda x: categorization(x))
-        
+		
 	return new_CDC_data
 
 def makeDendrogram(linked, labelList):
@@ -100,10 +102,10 @@ def makeDendrogram(linked, labelList):
 	#plt.figure(figsize=(10, 7))
 	ax = plt.axes()
 	dendrogram(linked,
-	            orientation='top',
-	            labels=labelList,
-	            distance_sort='descending',
-	            show_leaf_counts=True)
+				orientation='top',
+				labels=labelList,
+				distance_sort='descending',
+				show_leaf_counts=True)
 
 	plt.xlabel("Data Points")
 	plt.ylabel("Height")
@@ -145,6 +147,41 @@ def scatterPlot3(X_Data, Y_Data, labels, x_axis, y_axis, title, save, clusterLab
 		plt.show()
 		plt.clf()
 
+# def usaMap(dataFrame, loc, var, color, title):
+#     fig = go.Figure(data=go.Choropleth(
+#         locations=dataFrame[loc],
+#         z = dataFrame[var],
+#         locationmode = 'USA-states',
+#         colorscale = color,
+#     ))
+
+#     fig.update_layout(
+#         title_text = title,
+#         geo_scope='usa',
+#     )
+
+#     filename = 'usamap_'+title.replace(' ','_')+'.html'
+#     fig.write_html(filename, auto_open=True)
+
+def usaMap2(loc, var, color, title):
+	# print('state abbrevations:' ,dataFrame[loc])
+	# print('cluster label:' ,dataFrame[var])
+	# exit()
+	fig = go.Figure(data=go.Choropleth(
+		locations = loc,
+		z = var,
+		locationmode = 'USA-states',
+		colorscale = color,
+	))
+
+	fig.update_layout(
+		title_text = title,
+		geo_scope='usa',
+	)
+
+	filename = 'usamap_'+title.replace(' ','_')+'.html'
+	fig.show()
+	# fig.write_html(filename, auto_open=True)
 
 
 def main():
@@ -264,33 +301,34 @@ def main():
 	cluster_vals = []
 
 	#typeCluster = ""
-	new_clust_data, silh_score = doHierarchical(new_clust_df, 6)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
-	new_clust_data2, silh_score = doKMeans(new_clust_df, 6)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
+	new_cluster_data_hierarchical, silh_score = doHierarchical(new_clust_df, 6)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
+	new_clust_data_k_means, silh_score = doKMeans(new_clust_df, 6)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
 
 	print("silhouette score: ", silh_score)
 
 	state_data = pd.Series(orig_data['STATE_ABBR_Orig'].unique())
 	state_data.rename('STATE_ABBR_Orig', inplace = True)
 
-	#new_clust_data['YEAR'] = year_series
+	#new_cluster_data_hierarchical['YEAR'] = year_series
 
-	new_clust_data = pd.concat([new_clust_data, state_data], axis = 1)
-	new_clust_data2 = pd.concat([new_clust_data2, state_data], axis = 1)
+	new_cluster_data_hierarchical = pd.concat([new_cluster_data_hierarchical, state_data], axis = 1)
+	new_clust_data_k_means = pd.concat([new_clust_data_k_means, state_data], axis = 1)
 
-	cluster_labels_list2 = new_clust_data['cluster_labels'].astype(int).tolist()
-	cluster_labels_list3 = new_clust_data2['cluster_labels'].astype(int).tolist()
+	cluster_labels_hier = new_cluster_data_hierarchical['cluster_labels'].astype(int).tolist()
+	cluster_labels_kmeans = new_clust_data_k_means['cluster_labels'].astype(int).tolist()
 
-	pprint(new_clust_data)
-
-	#fig = px.scatter_3d(x = new_clust_data['STATE_ABBR'], y = new_clust_data['AGE_ADJUSTED_CANCER_RATE'], z = new_clust_data['AVG_REL_EST_TOTAL_PER_CAPITA'], color = cluster_labels_list2, color_continuous_scale = "RdBu")
-	#fig = px.scatter(x = new_clust_data['AGE_ADJUSTED_CANCER_RATE'], y = new_clust_data['AVG_REL_EST_TOTAL_PER_CAPITA'], color = cluster_labels_list2, color_continuous_scale = "RdBu")
+	# pprint(new_cluster_data_hierarchical)
 	
-	#fig.show()
-	#fig.write_html('3D_clustering.html', auto_play = True)
-
-	scatterPlot3(new_clust_data['AGE_ADJUSTED_CANCER_RATE'], new_clust_data['AVG_REL_EST_TOTAL_PER_CAPITA'], new_clust_data['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "H", True, cluster_labels_list2)
-	scatterPlot3(new_clust_data2['AGE_ADJUSTED_CANCER_RATE'], new_clust_data2['AVG_REL_EST_TOTAL_PER_CAPITA'], new_clust_data['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "K", True, cluster_labels_list3)
-
+	scatterPlot3(new_cluster_data_hierarchical['AGE_ADJUSTED_CANCER_RATE'], new_cluster_data_hierarchical['AVG_REL_EST_TOTAL_PER_CAPITA'], new_cluster_data_hierarchical['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "H", True, cluster_labels_hier)
+	scatterPlot3(new_clust_data_k_means['AGE_ADJUSTED_CANCER_RATE'], new_clust_data_k_means['AVG_REL_EST_TOTAL_PER_CAPITA'], new_cluster_data_hierarchical['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "K", True, cluster_labels_kmeans)
+	
+	# print(new_cluster_data_hierarchical.head())
+	# print(len(processed_data["STATE_ABBR"].unique()))
+	# print(len(new_cluster_data_hierarchical['cluster_labels']))
+	# exit()
+	# print(norm_data["STATE_ABBR"].unique())
+	# print(len(norm_data["STATE_ABBR"].unique()))
+	usaMap2(norm_data["STATE_ABBR"].unique(), new_clust_data_k_means['cluster_labels'], 'rainbow', "K Means Clusters (n = 6)")
 
 	# #clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(15, 35, 1), silh_score_list, cluster_vals)
 	# clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(15, 35, 1), silh_score_list, cluster_vals)
@@ -310,9 +348,9 @@ def main():
 
 	#----------------------------------------
 
-	new_clust_data.drop(['STATE_ABBR_Orig'], axis = 1, inplace = True)
+	new_cluster_data_hierarchical.drop(['STATE_ABBR_Orig'], axis = 1, inplace = True)
 
-	makeDendrogram(linkage(new_clust_data, 'single'), range(0, len(new_clust_data["AVG_REL_EST_TOTAL_PER_CAPITA"])))
+	# makeDendrogram(linkage(new_cluster_data_hierarchical, 'single'), range(0, len(new_cluster_data_hierarchical["AVG_REL_EST_TOTAL_PER_CAPITA"])))
 
 if __name__ == '__main__':
 	main()

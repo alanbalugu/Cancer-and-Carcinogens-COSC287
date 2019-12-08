@@ -28,6 +28,8 @@ def makeSubset(dataFrame, varList):
     return dataSubset
 
 def usaMap(dataFrame, loc, var, color, title):
+    print(dataFrame[loc])
+    print(dataFrame[var])
     fig = go.Figure(data=go.Choropleth(
         locations=dataFrame[loc],
         z = dataFrame[var],
@@ -366,6 +368,7 @@ def main():
     #makeHistogram(dataFrame, 'AVG_REL_EST_TOTAL', 'Average Release Estimate Total Distribution')
     usaMap(dataSubset3, 'STATE_ABBR', 'AVG_REL_EST_TOTAL', 'Blues', 'Average Release Estimate Total Per State Over Time')
     usaMap(dataSubset3, 'STATE_ABBR', 'AGE_ADJUSTED_CANCER_RATE', 'Blues', 'Age Adjusted Cancer Rate Per State Over Time')
+    usaMap(dataSubset4, 'STATE_ABBR', 'AVG_REL_EST_TOTAL', 'Blues', 'Average Release Estimate Total Per State Over Time (excluding Alaska)')
     usaMap(dataSubset4, 'STATE_ABBR', 'AVG_REL_EST_TOTAL', 'Blues', 'Average Release Estimate Total Per State Over Time (excluding Alaska)')
 
     makeSliderScatter(dataFrame, 'STATE_ABBR', stateList, 'YEAR', 'AGE_ADJUSTED_CANCER_RATE', 'Age-Adjusted Cancer Rate Over Time Per State', 'Year', 'Age-Adjusted Cancer Rate')
