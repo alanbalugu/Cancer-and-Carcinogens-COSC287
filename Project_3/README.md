@@ -6,36 +6,48 @@ Plotly visualizations:
 
     to run:
         open terminal and type "python3 plotly_visualizations.py"
-        code will write several visualizations to html and auto open in web browser
+        code will write several visualizations to html (except for stacked bar
+        graph of chemical release types) and auto open in web browser
 
     visualizations created:
         linear regression model for age-adjusted cancer rate (averaged per state
         over time) vs. average release estimate total (averaged per state over
         time) – one visualization with Alaska, one with Alaska removed
+            with Alaska – index.html for website contained in linreg_alaska
+            without Alaska – index.html for website contained in linreg_noalaska
 
         usa choropleth map showing average release estimate total (averaged over
         time) for each state – one visualization with Alaska, one with Alaska removed
             darker blue = higher release amounts
             lighter blue = lower release amounts
+            with Alaska – index.html for website stored in usamap_chem_alaska
+            without Alaska – index.html for website stored in usamap_chem_noalaska
 
         usa choropleth map showing age-adjusted cancer rate (averaged over time)
         for each state
             darker blue = higher cancer rate
             lighter blue = lower cancer rate
+            index.html for website stored in usamap_cancer
 
         line graph with slider showing average release estimate totals over time,
         one line graph trace per state with state as slider – one visualization
         with Alaska, one with Alaska removed
+            with Alaska – index.html for website stored in scatter_chem_alaska
+            without Alaska – index.html for website stored in scatter_chem_noalaska
 
         line graph with slider showing age-adjusted cancer rates over time, one
         line graph trace per state with state as slider
+            index.html for website stored in scatter_cancer
 
         bar graph with slider showing average release estimate totals per state
         over time, one bar graph trace per year with year as slider – one visualization
         with Alaska, one with Alaska removed
+            with Alaska – index.html for website stored in bar_chem_alaska
+            without Alaska – index.html for website stored in bar_chem_noalaska
 
         bar graph with slider showing age-adjusted cancer rates per state over time,
         one bar graph trace per year with year as slider
+            index.html for website stored in bar_cancer
         
 Getting the Size of our Original Datasets (number of rows and columns) files required**:
     
