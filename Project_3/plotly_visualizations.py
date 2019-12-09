@@ -27,58 +27,6 @@ def makeSubset(dataFrame, varList):
         dataSubset[var] = dataFrame[var]
     return dataSubset
 
-def usaMap(dataFrame, loc, var, color, title):
-    #make a map of the usa that shows relative amounts of var
-    #usaMap(dataSubset3, 'STATE_ABBR', 'AVG_REL_EST_TOTAL', 'Blues', 'Average Release Estimate Total Per State Over Time')
-
-    fig = go.Figure(data=go.Choropleth(
-        #set location equal to dataframe column (for example: dataFrame['STATE_ABBR'])
-        locations=dataFrame[loc],
-        #set data equal to datafram column corresponding to variable passed as arg
-        z = dataFrame[var],
-        #set location mode to United States
-        locationmode = 'USA-states',
-        #set colorscale to color scheme passed as arg
-        colorscale = color,
-    ))
-
-    fig.update_layout(
-        #set the title to the title passed as arg
-        title_text = title,
-        #set the scope to usa so that fig only shows United States map
-        geo_scope='usa',
-    )
-
-    #make filename and write the figure to html – opens automatically
-    filename = 'usamap_'+title.replace(' ','_')+'.html'
-    fig.write_html(filename, auto_open=True)
-
-def equiWidthBinning(dataFrame, var, numBins):
-    #puts data into bins of equal width
-    minVal = dataFrame[var].min() - 1
-    maxVal = dataFrame[var].max() + 1
-
-    step = (maxVal - minVal) / numBins
-    bins =  np.arange(minVal, maxVal + step, step)
-
-    equiWidthBins = np.digitize(dataFrame[var], bins)
-
-    binCounts = np.bincount(equiWidthBins)
-    print("\n\nBins for " + var + " are: \n ", equiWidthBins)
-    print("\nBin count is ", binCounts)
-
-    return dataFrame[var]
-
-def makeHistogram(dataFrame, var, title, axisLabel):
-    #plot the data as a histogram
-    binnedData = equiWidthBinning(dataFrame, var, 10)
-    plt.figure(1)
-    binnedData.hist()
-    plt.title(title)
-    plt.xlabel(axisLabel)
-    plt.savefig('epa_'+ var + '_histogram.png')
-    plt.show()
-
 def avgOverTime(dataFrame, stateAbbr, var):
     #find dataframe rows that correspond to the state abbr given
     rows = dataFrame.loc[dataFrame['STATE_ABBR'] == stateAbbr]
@@ -238,6 +186,32 @@ def makeLinReg(dataFrame, xVar, yVar, title, xLabel, yLabel):
     #return the linear regression coefficient for the data
     return linCoef
 
+def usaMap(dataFrame, loc, var, color, title):
+    #make a map of the usa that shows relative amounts of var
+    #usaMap(dataSubset3, 'STATE_ABBR', 'AVG_REL_EST_TOTAL', 'Blues', 'Average Release Estimate Total Per State Over Time')
+
+    fig = go.Figure(data=go.Choropleth(
+        #set location equal to dataframe column (for example: dataFrame['STATE_ABBR'])
+        locations=dataFrame[loc],
+        #set data equal to datafram column corresponding to variable passed as arg
+        z = dataFrame[var],
+        #set location mode to United States
+        locationmode = 'USA-states',
+        #set colorscale to color scheme passed as arg
+        colorscale = color,
+    ))
+
+    fig.update_layout(
+        #set the title to the title passed as arg
+        title_text = title,
+        #set the scope to usa so that fig only shows United States map
+        geo_scope='usa',
+    )
+
+    #make filename and write the figure to html – opens automatically
+    filename = 'usamap_'+title.replace(' ','_')+'.html'
+    fig.write_html(filename, auto_open=True)
+    
 def makeSliderScatter(dataFrame, sliderVar, sliders, xVar, yVar, title, xLabel, yLabel):
     #make a new figure
     fig = go.Figure()
