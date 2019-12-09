@@ -1,4 +1,6 @@
-# Import all your libraries.
+# Import all libraries.
+# Adrian Hertel + Alan Balu
+
 import pandas
 import numpy as np
 from pprint import pprint
@@ -14,6 +16,7 @@ from sklearn.model_selection import train_test_split
 
 CATEG_COLS = ['STATE_ABBR']
 
+#function to bin the cancer rate rate based on z-score
 def binRate(merged_data):
 
 	def categorization(value):
@@ -32,6 +35,7 @@ def binRate(merged_data):
         
 	return merged_data
 
+#function to do the decision tree analysis
 def decisionTree():
 	######################################################
 	# Load the data
@@ -62,19 +66,15 @@ def decisionTree():
 	merged_data['AGE_ADJUSTED_CANCER_RATE_NORMALIZED'] = z_scores
 	merged_data = binRate(merged_data)
 
+	merged_data.drop(['AGE_ADJUSTED_CANCER_RATE', 'AGE_ADJUSTED_CANCER_RATE_NORMALIZED'], axis = 1, inplace = True)
 
 	pprint(merged_data.columns)
-	pprint(merged_data)
-
-
-	merged_data.drop(['AGE_ADJUSTED_CANCER_RATE', 'AGE_ADJUSTED_CANCER_RATE_NORMALIZED'], axis = 1, inplace = True)
 
 	valueArray = merged_data.values
 	X = valueArray[:, 0:25]
 	Y = valueArray[:, 25]
 	test_size = 0.20
 	seed = 7
-
 
 	# create boolean column for whether row is an outlier or not
 	outlier_list = []
@@ -86,18 +86,7 @@ def decisionTree():
 		else:
 			outlier_list.append(False)
 
-
-	# X_series = pandas.DataFrame(X)
-	# print(X_series.isna())
-	# Y_series = pandas.Series(Y)
-	# print(Y_series.isna().sum())
-	# exit()
 	X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size, random_state=seed)
-
-
-	######################################################
-	# Use different algorithms to build models
-	######################################################
 
 	######################################################
 	# For the decision tree, see how well it does on the

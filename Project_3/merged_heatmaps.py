@@ -54,7 +54,6 @@ def separate_by_year(CDC_Data, year):
 
 	return CDC_Data_yearly
 
-
 def doLinearRegr(series1, series2):
 	try:
 		linear_model = LinearRegression().fit(np.array(series1).reshape(-1,1), np.array(series2).reshape(-1,1))
@@ -65,19 +64,20 @@ def doLinearRegr(series1, series2):
 
 	return r_sq
 
-#makes a line graph with a line of a given color and region (label for the line)
-def lineGraphByRegion(x_data, y_data, color_val, region):
+# #makes a line graph with a line of a given color and region (label for the line)
+# def lineGraphByRegion(x_data, y_data, color_val, region):
 
-	#plt.xticks(x_data)
-	fig = plt.figure(1)
-	ax = plt.axes()
-	plt.xlabel('Year')
-	plt.ylabel("rate of cancer")
-	ax.plot(x_data, y_data, color = color_val, label = region)
-	handles, labels = ax.get_legend_handles_labels()
-	lgd = ax.legend(handles, labels)
-	ax.grid('on')
+# 	#plt.xticks(x_data)
+# 	fig = plt.figure(1)
+# 	ax = plt.axes()
+# 	plt.xlabel('Year')
+# 	plt.ylabel("rate of cancer")
+# 	ax.plot(x_data, y_data, color = color_val, label = region)
+# 	handles, labels = ax.get_legend_handles_labels()
+# 	lgd = ax.legend(handles, labels)
+# 	ax.grid('on')
 
+#compute the correlation between states and return the matrix of those correlations for heatmap
 def stateWideCorrel(merged_data, data_label1, data_label2):
 	print("do correlations")
 
@@ -85,24 +85,22 @@ def stateWideCorrel(merged_data, data_label1, data_label2):
 
 	lin_reg_values = []
 
+	#compare each state to every other states
 	for state1 in merged_data['STATE_ABBR'].unique():
 		for state2 in merged_data['STATE_ABBR'].unique():
 
 			series1 = merged_data.loc[merged_data['STATE_ABBR'] == state1][data_label1]
 			series2 = merged_data.loc[merged_data['STATE_ABBR'] == state2][data_label2]
 
-			#print(series1, series2 )
-
-			#scatterPlot(series1, series2, "series1", "series2", "correlation", 0)
 
 			if (series1.size != series2.size):
-				#print("lengths are different", series1.size, series2.size)
 				if (series1.size < series2.size):
 					series2 = series2[(series2.size - series1.size):]
 				else:
 					series1 = series1[(series1.size - series2.size):]
 
 			try:
+				#perform linear regression
 				linear_model = LinearRegression().fit(np.array(series1).reshape(-1,1), np.array(series2).reshape(-1,1))
 
 				r_sq = linear_model.score(np.array(series1).reshape(-1,1), np.array(series2).reshape(-1,1))
@@ -158,11 +156,6 @@ def heatMap(year_str, matrix, x_axis, y_axis, cbar_kw={}):
 	# Normalize the threshold to the images color range.
 	threshold = im.norm(heat_map.max())/2.
 
-	# Loop over matrix and create text annotations with the values passed in
-	# for i in range(len(x_axis)):
-	#     for j in range(len(y_axis)):
-	#         text = ax.text(j, i, str(heat_map[i, j])[0:4], ha="center", va="center", color="b")
-
 	ax.set_title("heatmap"+year_str)
 
 	for edge, spine in ax.spines.items():
@@ -180,9 +173,8 @@ def heatMap(year_str, matrix, x_axis, y_axis, cbar_kw={}):
 
 	#display the heatmap
 	fig.tight_layout()
+	plt.show()
 	#plt.savefig("heatmap"+year_str+'.png')
-	#plt.show()
-	plt.savefig("heatmap"+year_str+'.png')
 	plt.clf()		
 
 
@@ -201,9 +193,6 @@ def main():
 	year_start = 1999
 	year_end = 2017
 
-	#pd.plotting.scatter_matrix(region_data)
-	#plt.show()
-
 	region_data = region_data.loc[:, region_data.columns.intersection(['YEAR', 'REGION', 'STATE_ABBR', 'AVG_REL_EST_TOTAL_PER_CAPITA', 'AGE_ADJUSTED_CANCER_RATE'])]
 	region_data.dropna(inplace = True)
 	#region_data.sort_values(by=['REGION'], inplace = True)
@@ -221,13 +210,11 @@ def main():
 		r_squar = doLinearRegr(series1, series2)
 		#print('coefficient of determination:' + str(r_squar))
 
-
-	#heat map of linear regression correlations between each regions 
-	#makeHeatMap_corr(binned_CDC_Data)
 	region_data.sort_values(by=['STATE_ABBR', 'YEAR'], inplace = True)
 
 	pprint(region_data)
 	
+	#make a heatmap of linear regression between states for cancer rate
 	regressionMatrix = stateWideCorrel(region_data, 'AGE_ADJUSTED_CANCER_RATE', 'AGE_ADJUSTED_CANCER_RATE')   #order based on order in data file
 
 	heatMap(" of cancer correlations between states", regressionMatrix, list(region_data['STATE_ABBR'].unique()), list(region_data['STATE_ABBR'].unique()))

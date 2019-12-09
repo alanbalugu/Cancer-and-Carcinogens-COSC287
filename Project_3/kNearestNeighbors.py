@@ -141,21 +141,25 @@ def main():
 
 	region_data = separateByRegion(normalized_data, 'STATE_ABBR', True)
 
-	binnedRate_data = binRate(region_data)  #add column for rate bin level
+	binnedRate_data = binRate(region_data)  #add column for cancer rate bin level
 
+	#drop values from the actual cancer rate so that null values are gone
 	binnedRate_data = binnedRate_data.dropna(subset=['AGE_ADJUSTED_CANCER_RATE'])
 
 	#pprint(region_CDC_data)
 	categ_columns = ['STATE_ABBR', 'AGE_ADJUSTED_CANCER_RATE_level' ,'region']
 	drop_columns = [] #remove columns that are unnecessary for clustering question
 
+	#preprocess the data
 	processed_CDC_data, old_columns_CDC_Data = CDCpreprocessing2(binnedRate_data, categ_columns, drop_columns)   #(CDC_Data, categories, columns_to_drop):    new_CDC_data, (series) list_of_dropped, list_of_categ
 	processed_CDC_data.fillna(0, inplace = True) 
 
+	#drop the cancer rate column so that it's levels can be predicted
 	processed_CDC_data.drop(['AGE_ADJUSTED_CANCER_RATE'], axis = 1, inplace = True)
 
 	pprint(processed_CDC_data.columns)
 
+	#run the KNN classification model
 	predictive_KNN_model(processed_CDC_data)
 
 

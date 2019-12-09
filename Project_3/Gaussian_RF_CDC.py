@@ -101,9 +101,10 @@ def normalize_data(myData):
 def normalize_merged_data(myData):
   categorical_vars = ['STATE_ABBR', 'CHEM_RATE_LEVEL', 'CANCER_RATE_LEVEL']
   #attributes_to_normalize = [] #['AVG_REL_EST_TOTAL', 'AGE_ADJUSTED_CANCER_RATE']  #'YEAR'
+  pprint(myData)
   myData[categorical_vars] = myData[categorical_vars].apply(LabelEncoder().fit_transform)
   #myData[attributes_to_normalize] = myData[attributes_to_normalize].apply(lambda x:(x-x.mean())/(x.std()))
-
+  pprint(myData)
   return myData
 
 # call on merged CDC and EPA dataframe
@@ -172,6 +173,7 @@ def get_category_of_cancer_rate(myData):
 # analyzes merged cdc and epa data
 def predictive_models(myData, numAttributes):
   scoring = 'accuracy'
+  pprint(myData.columns)
   valueArray = myData.values
   X = valueArray[:, 0:numAttributes]
   Y = valueArray[:, numAttributes]
@@ -268,26 +270,28 @@ def main():
   df = pd.read_csv('USCS_CancerTrends_OverTime_ByState.csv' , sep=',', encoding='latin1')
   merged_df = pd.read_csv('merged_data2.csv', sep=',', encoding='latin1')
 
-  df = basic_statistical_analysis(df)
-  find_outliers(df)
-  normalized_df = normalize_data(df)
 
- # plot_data(normalized_df)
-
+  #only keep year, state, chemicals and cancer adta
   merged_df2 = merged_df.loc[:, merged_df.columns.intersection(['YEAR', 'STATE_ABBR', 'AVG_REL_EST_TOTAL_PER_CAPITA', 'AGE_ADJUSTED_CANCER_RATE'])]
+
+  #drop null values
   merged_df2.dropna(inplace = True)
-  #merged_df2.fillna(0, inplace = True)
+  
+  #get the cancer rate bins based on z-score
   new_df = get_category_of_cancer_rate(merged_df2)
 
   #print(new_df)
 
+  #normalize the categorical columns via lebl encoding
   new_df = normalize_merged_data(new_df)
 
+  #drop all cancer-related colums so that it can be predicted (except for the rate level)
   new_df.drop(['AGE_ADJUSTED_CANCER_RATE', 'Z_SCORE_AVG_REL_EST_TOTAL', 'Z_SCORE_AGE_ADJUSTED_CANCER_RATE'], axis = 1, inplace = True)
 
   print("new stuff")
-  print(new_df)
+  print(new_df.columns)
 
+  #run random forrest and naive bayes predictive models
   predictive_models(new_df, len(new_df.columns)-1)
   print("end main")
 
