@@ -78,84 +78,6 @@ def separate_by_year(CDC_Data, year):
 
 	return CDC_Data_yearly
 
-#main driver program to make heat maps for t-test results and cross-correlogram from linear regressions 
-def main():
-	print("main")
-
-	# Read in data directly into pandas
-	cleaned_CDC_Data = pd.read_csv('USCS_CancerTrends_OverTime_ByState.csv' , sep=',', encoding='latin1')
-
-	#normalized_CDC_Data = normalizeCDC(cleaned_CDC_Data, ['AgeAdjustedRate'])   #z score normalization
-	normalized_CDC_Data = cleaned_CDC_Data
-	normalized_CDC_Data.dropna(inplace = True)
-
-	normalized_CDC_Data = separateByRegion(normalized_CDC_Data)
-
-	binned_CDC_Data = binRate(normalized_CDC_Data)
-
-	#pprint(binned_CDC_Data)
-
-	year_start = 1999
-	year_end = 2017
-
-	pprint(binned_CDC_Data.columns)
-
-	for year in range(year_start, year_end, 1):
-
-		new_binned_CDC_Data = separate_by_year(binned_CDC_Data, year)
-
-		pprint(new_binned_CDC_Data)
-
-		break
-
-		#makeHeatMap_pval(new_binned_CDC_Data, str(year))
-		#pprint(binned_CDC_Data)
-
-
-	p_val_df = pd.DataFrame()
-
-	p_val_df["STATE"] = binned_CDC_Data["Area"].unique()
-
-	state_avg_cancer = []
-
-	for state in binned_CDC_Data["Area"].unique():
-		state_avg_cancer.append( binned_CDC_Data.loc[binned_CDC_Data['Area'] == state]['AgeAdjustedRate'].mean() )
-
-	#pprint(state_avg_cancer)
-
-	p_val_df["AgeAdjustedRate"] = state_avg_cancer
-
-	p_val_df["region"] = p_val_df["STATE"].apply(lambda x: categorization(x))
-
-	pprint(p_val_df)
-
-	#makeHeatMap_pval(p_val_df, str(9999))
-
-
-	#----------------------------------------------------------
-
-	mean_list = []
-
-	color_counter = 0;
-	colors = ["green", "blue", "red", "black", "purple"]
-
-	for each in binned_CDC_Data['region'].unique():
-		for yr in range(year_start, year_end, 1):
-			mean_list.append((binned_CDC_Data.loc[binned_CDC_Data['region'] == each].loc[binned_CDC_Data['Year'] == yr])['AgeAdjustedRate'].mean())
-			#print(mean_list)
-		
-		#lineGraphByRegion(list(range(year_start, year_end)), mean_list, colors[color_counter], each)
-
-		mean_list = []
-		color_counter += 1
-
-	#plt.clf()
-	plt.show()
-	plt.clf()
-
-	#heat map of linear regression correlations between each regions 
-	#makeHeatMap_corr(binned_CDC_Data)
-
 #does linear regression for the cdc dataframe and returns the list of R^2 values from each comparison
 def doLinearReg(binned_CDC_Data):
 
@@ -251,7 +173,7 @@ def makeHeatMap_pval(binned_CDC_Data, year_str):
 	pprint(t_test_matrix)
 
 	#generate and plot heatmap
-	heatMap(" for t-tests of cancer rates between regions for "+year_str, t_test_matrix, list(binned_CDC_Data['region'].unique()), list(binned_CDC_Data['region'].unique()))
+	heatMap(" for t-tests of cancer rates between regions "+year_str, t_test_matrix, list(binned_CDC_Data['region'].unique()), list(binned_CDC_Data['region'].unique()))
 
 #make a heat map given the title, matrix, axes labels, and color scheme
 def heatMap(year_str, matrix, x_axis, y_axis, cbar_kw={}):
@@ -304,9 +226,76 @@ def heatMap(year_str, matrix, x_axis, y_axis, cbar_kw={}):
 
 	#display the heatmap
 	fig.tight_layout()
-	plt.savefig("heatmap"+year_str+'.png')
-	#plt.show()
+	#plt.savefig("heatmap"+year_str+'.png')
+	plt.show()
 	plt.clf()
+
+
+#main driver program to make heat maps for t-test results and cross-correlogram from linear regressions 
+def main():
+	print("main")
+
+	# Read in data directly into pandas
+	cleaned_CDC_Data = pd.read_csv('USCS_CancerTrends_OverTime_ByState.csv' , sep=',', encoding='latin1')
+
+	#normalized_CDC_Data = normalizeCDC(cleaned_CDC_Data, ['AgeAdjustedRate'])   #z score normalization
+	normalized_CDC_Data = cleaned_CDC_Data
+	normalized_CDC_Data.dropna(inplace = True)
+
+	normalized_CDC_Data = separateByRegion(normalized_CDC_Data)
+
+	binned_CDC_Data = binRate(normalized_CDC_Data)
+
+	#pprint(binned_CDC_Data)
+
+	year_start = 1999
+	year_end = 2017
+
+	pprint(binned_CDC_Data.columns)
+
+	p_val_df = pd.DataFrame()
+
+	p_val_df["STATE"] = binned_CDC_Data["Area"].unique()
+
+	state_avg_cancer = []
+
+	for state in binned_CDC_Data["Area"].unique():
+		state_avg_cancer.append( binned_CDC_Data.loc[binned_CDC_Data['Area'] == state]['AgeAdjustedRate'].mean() )
+
+	#pprint(state_avg_cancer)
+
+	p_val_df["AgeAdjustedRate"] = state_avg_cancer
+
+	p_val_df["region"] = p_val_df["STATE"].apply(lambda x: categorization(x))
+
+	pprint(p_val_df)
+
+	makeHeatMap_pval(p_val_df, "")
+
+
+	#----------------------------------------------------------
+
+	mean_list = []
+
+	color_counter = 0;
+	colors = ["green", "blue", "red", "black", "purple"]
+
+	for each in binned_CDC_Data['region'].unique():
+		for yr in range(year_start, year_end, 1):
+			mean_list.append((binned_CDC_Data.loc[binned_CDC_Data['region'] == each].loc[binned_CDC_Data['Year'] == yr])['AgeAdjustedRate'].mean())
+			#print(mean_list)
+		
+		lineGraphByRegion(list(range(year_start, year_end)), mean_list, colors[color_counter], each)
+
+		mean_list = []
+		color_counter += 1
+
+	#plt.clf()
+	plt.show()
+	plt.clf()
+
+	#heat map of linear regression correlations between each regions 
+	makeHeatMap_corr(binned_CDC_Data)
 
 
 if __name__ == '__main__':

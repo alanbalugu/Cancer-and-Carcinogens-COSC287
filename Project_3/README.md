@@ -1,99 +1,204 @@
-netids: agb76, pnl8, kie3, akh70
+Plotly visualizations:
 
-Twitter:
+    files required:
+        merged_data.csv
+        plotly_visualizations.py
 
-    to download twitter data as csv files:
-        run GetTwitterDataByHandle.py
-        this file will use twitterhandles.txt to access different handles' data
+    to run:
+        open terminal and type "python3 plotly_visualizations.py"
+        code will write several visualizations to html (except for stacked bar
+        graph of chemical release types) and auto open in web browser
 
-    to view original twitter data in csv format:
-        open UncleanedTwitterData.zip
-        contains separate csv files for data from all twitter handles in twitterhandles.txt
+    visualizations created:
+        linear regression model for age-adjusted cancer rate (averaged per state
+        over time) vs. average release estimate total (averaged per state over
+        time) – one visualization with Alaska, one with Alaska removed
+            with Alaska – index.html for website contained in linreg_alaska
+            without Alaska – index.html for website contained in linreg_noalaska
 
-    to clean twitter data:
-        run twitterDataCleaning.py
-        also run combineCSV.py
+        usa choropleth map showing average release estimate total (averaged over
+        time) for each state – one visualization with Alaska, one with Alaska removed
+            darker blue = higher release amounts
+            lighter blue = lower release amounts
+            with Alaska – index.html for website stored in usamap_chem_alaska
+            without Alaska – index.html for website stored in usamap_chem_noalaska
 
-    to view cleaned epa data in csv format:
-        open CleanedTwitterData.zip
-        contains separate csv files for cleaned data from all twitter handles in twitterhandles.txt
-        also contains one larger csv with compiled cleaned data from all handles
+        usa choropleth map showing age-adjusted cancer rate (averaged over time)
+        for each state
+            darker blue = higher cancer rate
+            lighter blue = lower cancer rate
+            index.html for website stored in usamap_cancer
 
-EPA Data:
+        line graph with slider showing average release estimate totals over time,
+        one line graph trace per state with state as slider – one visualization
+        with Alaska, one with Alaska removed
+            with Alaska – index.html for website stored in scatter_chem_alaska
+            without Alaska – index.html for website stored in scatter_chem_noalaska
+
+        line graph with slider showing age-adjusted cancer rates over time, one
+        line graph trace per state with state as slider
+            index.html for website stored in scatter_cancer
+
+        bar graph with slider showing average release estimate totals per state
+        over time, one bar graph trace per year with year as slider – one visualization
+        with Alaska, one with Alaska removed
+            with Alaska – index.html for website stored in bar_chem_alaska
+            without Alaska – index.html for website stored in bar_chem_noalaska
+
+        bar graph with slider showing age-adjusted cancer rates per state over time,
+        one bar graph trace per year with year as slider
+            index.html for website stored in bar_cancer
+        
+Getting the Size of our Original Datasets (number of rows and columns) files required**:
     
-    to download epa data as csv files:
-        run epa_downloader.py
-
-    to view original epa data in csv format:
-        open 'original' folder
-        contains two files:
-            epa_data_state_releases.csv
-            epa_data_state_chems_and_releases.csv
-
-    to clean epa data:
-        run clean_trim_EPA.py
-
-    to view cleaned epa data in csv format:
-        open 'cleaned' folder
-        contains two files:
-            epa_data_state_releases_cleaned.csv
-            epa_data_state_chems_and_releases_cleaned.csv
-
-    to generate a frame of state as rows and years as columns:
-        run epa_generate_state_year_frame.py
-
-    to view a frame of state as rows and years as columns:
-        open epa_state_year_frame.csv
-
-    to view EPA statistics
-        run epa_stats.py
-
-    to view EPA graphs
-        open 'epa_graphs' folder
-
-CDC Data:
-
-    to view aggregated cancer stats from 1999-2016 by
-    state:
-        open USCS_CancerTrends_OverTime_ByState.csv
-
-    to generate csv files containing data from the CDC
-        dataset on chronic disease indicators for cancer, 
-        run "cdc_download_clean.py" which writes out the original, uncleaned 
-        CDC data, as well as performs the data cleaning 
-        procedures to then create a new, cleaned dataset
-        this will create: 
-            "CDC_API.csv" which contains
-                the original, uncleaned data from CDC.gov and 
-            "CDC_API_Clean.csv" which contains the
-                dataframe after cleaning, sorting, and removing
-                rows containing null data
-
-    to view CDC API statistics:
-        run cdc_api_statistics.py
-
-    to generate NaiveBayes and RandomForest classification and other analysis for USCS:
-        run FINAL_CDC_P2.py
-
-    to generate heat maps comparing the regions for USCS:
-        run CDC_regions_heatmaps.py
-
-    to run association rule mining for USCS data:
-        run AssociationRuleMining.py
-
-    to generate clusters (DBScan, Hierchical and K-means) for USCS data:
-        run CdcClustering.py
-
-Merged Data:
-
-    to view our final merged data set contained both CDC and EPA data for every year and state 
-        open merged_data.csv
+        CDC_API.csv
+        USCS_CancerTrends_OverTime_ByState.csv
+        epa_data_state_chems_and_releases.csv
+        combined_twitter_files.csv
+        merged_data.csv
+        get_size_of_datasets.py
+        
+        **If any of the above csv files are in a different directory, please
+        make sure they are all in the same location as the get_size_of_datasets.py
+        file before running the py file.**
+        
+    to run:
+        1) Open Link_to_Large_EPA_Files and download epa_data_state_chems_and_releases.csv
+        from the Google drive
+        
+            *we had to link to this file instead of including it directly because it was
+            too large
+        
+        2) Open terminal and type "python3 get_size_of_datasets.py"
+        
+    outputs:
+        prints number of rows and columns of each of the dataframes we worked with
+        to the console (5 total dataframes, for each of the csv files)
+        
+        we used this file to get additional info for the "Data" section on our
+        website
+      
+Making HeapMap of T-tests Between Regions for Average Cancer Rate, Line Graph of Cancer Rate Over Time, & Cancer Rate Correlations Over Time:
     
-    to merge EPA and CDC data into final data set
-        run merge_data.py
+    requires:
+        CdcClustering.py
+        AssociationRuleMining.py
+        CDC_regions_heatmaps.py
+        USCS_CancerTrends_OverTime_ByState.csv
+        
+    run:
+        CDC_regions_heatmaps.py
+    
+    outputs:
+        1. heatmap of p-values from t-tests between regions for cancer rate time series
+        2. line graph of the average cancer rate for each region
+        3. heatmap of correlation coefficients between the average cancer rate of each regions
+        
 
-    to run KNN classification on merged data:
-        run kNearestNeighbors.py
+Run Machine Learning Classification Models:
 
-    to run decision tree classification on merged data:
-        run decision_tree.py
+    requires:
+        merged_data2.csv
+        Gaussian_RF_CDC.py
+        kNearestNeighbors.py
+            CDC_USCS_clustering.py
+            CdcClustering.py
+        decision_tree.py
+        
+    run:
+        Gaussian_RF_CDC.py
+        
+        outputs:
+            confusion matrices and results of Random Forrest and Gaussian Naive Bayes classifiers respectively.
+            
+    run:
+        kNearestNeighbors.py
+        
+        outputs:
+            confusion matrices and results of kNN classifier.
+            ROC curve plot (saved as "ROC CURVE KNN.png")
+            
+    run:
+        decision_tree.py
+        
+        outputs:
+            confusion matrices and results of Decision Tree classifier.
+            
+
+Make Heatmap of Cancer Rate Correlations over Time Between States:
+
+    requires:
+        merged_data2.csv
+        merged_heatmaps.py
+        CdcClustering.py
+        AssociationRuleMining.py
+        
+    run:
+        merged_heatmaps.py
+        
+    outputs:
+        Heatmap of linear regression correlations between each pair of states for the cancer rate over time.
+        
+
+Clustering Analysis on Merged Dataset:
+
+    requires:
+        merged_data2.csv
+        merged_clustering.py
+        CdcClustering.py
+        AssociationRuleMining.py
+        
+    run:
+        merged_clustering.py
+        
+    outputs:
+        Scatterplot for KMeans clustering with cluster labels for states as colors. (saved as "KMeans Clustering.png")
+        Scatterplot for Hierarchical clustering with cluster labels for states as colors. (saved as "Hierarchical Clustering.png")
+        Dendrogram for hierarchical clustering. (saved as "hierarchical clustering dendrogram.png")
+        
+        
+Network Analysis on Merged Dataset:
+    
+        First make the network:
+            
+            requires:
+                merged_data2.csv
+                CdcClustering.py
+                AssociationRuleMining.py
+                merged_heatmaps.py
+                merged_clustering.py
+                make_merged_network.py
+                
+            run:
+                make_merged_network.py
+                
+            outputs:
+                network_df.csv
+                final_network.csv  (this is the edge and edge weights for the final network)
+                
+        Complete network analysis and visualizations:
+        
+            requires:
+                final_network.csv
+                merged_network_analysis.py
+                
+            run:
+                merged_network_analysis.py
+                
+            outputs:
+                1. Whole network plot
+                2. Distribution of degree for the nodes
+                3. Degree plot of each state and its degree
+                4. Whole network plot colored by degree centrality
+                5. Whole network plot colored by betweenness centrality
+                6. While network plot colored by partitioning
+                7. Degree plot of each state and its degree colored by the partitioning
+                
+                Various statistics and characteristics about the network
+                
+                
+                
+        
+        
+        
+    
