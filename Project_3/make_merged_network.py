@@ -28,10 +28,8 @@ from CdcClustering import doPCA   #(CDC_Data)
 from AssociationRuleMining import categorization
 from AssociationRuleMining import abbreviate
 
-from merged_heatmaps import stateWideCorrel  #(region_data (sorted), 'AGE_ADJUSTED_CANCER_RATE'):    lin_reg_matrix
 from merged_heatmaps import separateByRegion #(CDC_Data):   data   (REGION, STATE_ABBR)
 from merged_heatmaps import separate_by_year  #(CDC_Data, year):   data   (YEAR)
-from merged_heatmaps import doLinearRegr   #(series1, series2):   r_sq
 
 from CdcClustering import normalizeCDC_byQuestion as normalize_byQuestion #(CDC_data, feature_to_sort_by, feature_to_clean):
 from merged_clustering import binRate #binRate(CDC_Data, data_label):   dataframe
