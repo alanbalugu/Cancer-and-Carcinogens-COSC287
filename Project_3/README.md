@@ -83,6 +83,72 @@ Making HeapMap of T-tests Between Regions for Average Cancer Rate, Line Graph of
         heatmap of correlation coefficients between the average cancer rate of each regions
         
 
+Run Machine Learning Classification Models:
 
+    requires:
+        merged_data2.csv
+        Gaussian_RF_CDC.py
+        kNearestNeighbors.py
+            CDC_USCS_clustering.py
+            CdcClustering.py
+        decision_tree.py
+        
+    run:
+        Gaussian_RF_CDC.py
+        
+        outputs:
+            confusion matrices and results of Random Forrest and Gaussian Naive Bayes classifiers respectively.
+            
+    run:
+        kNearestNeighbors.py
+        
+        outputs:
+            confusion matrices and results of kNN classifier.
+            ROC curve plot (saved as "ROC CURVE KNN.png")
+            
+    run:
+        decision_tree.py
+        
+        outputs:
+            confusion matrices and results of Decision Tree classifier.
+            
 
+Make Heatmap of Cancer Rate Correlations over Time Between States:
+
+    requires:
+        merged_data2.csv
+        merged_heatmaps.py
+        CdcClustering.py
+        AssociationRuleMining.py
+        
+    run:
+        merged_heatmaps.py
+        
+    outputs:
+        Heatmap of linear regression correlations between each pair of states for the cancer rate over time.
+        
+
+Clustering Analysis on Merged Dataset:
+
+    requires:
+        merged_data2.csv
+        merged_clustering.py
+        CdcClustering.py
+        AssociationRuleMining.py
+        
+    run:
+        merged_clustering.py
+        
+    outputs:
+        Scatterplot for KMeans clustering with cluster labels for states as colors. (saved as "KMeans Clustering.png")
+        Scatterplot for Hierarchical clustering with cluster labels for states as colors. (saved as "Hierarchical Clustering.png")
+        Dendrogram for hierarchical clustering. (saved as "hierarchical clustering dendrogram.png")
+        
+        
+Network Analysis on Merged Dataset:
+    
+        
+        
+        
+        
     
