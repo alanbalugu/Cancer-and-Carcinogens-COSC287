@@ -78,9 +78,9 @@ Making HeapMap of T-tests Between Regions for Average Cancer Rate, Line Graph of
         CDC_regions_heatmaps.py
     
     outputs:
-        heatmap of p-values from t-tests between regions for cancer rate time series
-        line graph of the average cancer rate for each region
-        heatmap of correlation coefficients between the average cancer rate of each regions
+        1. heatmap of p-values from t-tests between regions for cancer rate time series
+        2. line graph of the average cancer rate for each region
+        3. heatmap of correlation coefficients between the average cancer rate of each regions
         
 
 Run Machine Learning Classification Models:
@@ -147,7 +147,45 @@ Clustering Analysis on Merged Dataset:
         
 Network Analysis on Merged Dataset:
     
+        First make the network:
+            
+            requires:
+                merged_data2.csv
+                CdcClustering.py
+                AssociationRuleMining.py
+                merged_heatmaps.py
+                merged_clustering.py
+                make_merged_network.py
+                
+            run:
+                make_merged_network.py
+                
+            outputs:
+                network_df.csv
+                final_network.csv  (this is the edge and edge weights for the final network)
+                
+        Complete network analysis and visualizations:
         
+            requires:
+                final_network.csv
+                merged_network_analysis.py
+                
+            run:
+                merged_network_analysis.py
+                
+            outputs:
+                1. Whole network plot
+                2. Distribution of degree for the nodes
+                3. Degree plot of each state and its degree
+                4. Whole network plot colored by degree centrality
+                5. Whole network plot colored by betweenness centrality
+                6. While network plot colored by partitioning
+                7. Degree plot of each state and its degree colored by the partitioning
+                
+                Various statistics and characteristics about the network
+                
+                
+                
         
         
         
