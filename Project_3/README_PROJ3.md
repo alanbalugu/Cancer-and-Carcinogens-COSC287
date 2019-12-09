@@ -60,3 +60,6 @@ Getting the Size of our Original Datasets (number of rows and columns) files req
         we used this file to get additional info for the "Data" section on our
         website
       
+Making HeapMap of T-tests Between Regions for Average Cancer Rate:
+
+    
