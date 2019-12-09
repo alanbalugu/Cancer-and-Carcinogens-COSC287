@@ -5,7 +5,7 @@ Plotly visualizations:
         plotly_visualizations.py
 
     to run:
-        open terminal and type "python plotly_visualizations.py"
+        open terminal and type "python3 plotly_visualizations.py"
         code will write several visualizations to html and auto open in web browser
 
     visualizations created:
@@ -36,3 +36,27 @@ Plotly visualizations:
 
         bar graph with slider showing age-adjusted cancer rates per state over time,
         one bar graph trace per year with year as slider
+        
+Getting the Size of our Original Datasets (number of rows and columns)
+    files required**:
+        CDC_API.csv
+        USCS_CancerTrends_OverTime_ByState.csv
+        epa_data_state_chems_and_releases.csv
+        combined_twitter_files.csv
+        merged_data.csv
+        get_size_of_datasets.py
+        
+        **If any of the above csv files are in a different directory, please
+        make sure they are all in the same location as the get_size_of_datasets.py
+        file before running the py file.
+        
+    to run:
+        open terminal and type "python3 get_size_of_datasets.py"
+        
+    outputs:
+        prints number of rows and columns of each of the dataframes we worked with
+        to the console (5 total dataframes, for each of the csv files)
+        
+        we used this file to get additional info for the "Data" section on our
+        website
+      
