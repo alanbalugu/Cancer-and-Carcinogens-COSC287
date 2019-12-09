@@ -3,21 +3,11 @@ import pandas as pd
 from pandas.plotting import scatter_matrix
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
-import scipy.stats as stats
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import accuracy_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import normalize
 import plotly
 import chart_studio.plotly as py
-import plotly.express as px
 import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-from pprint import pprint
 
 def makeSubset(dataFrame, varList):
     #make a new dataframe for the subset
@@ -211,7 +201,7 @@ def usaMap(dataFrame, loc, var, color, title):
     #make filename and write the figure to html – opens automatically
     filename = 'usamap_'+title.replace(' ','_')+'.html'
     fig.write_html(filename, auto_open=True)
-    
+
 def makeSliderScatter(dataFrame, sliderVar, sliders, xVar, yVar, title, xLabel, yLabel):
     #make a new figure
     fig = go.Figure()
