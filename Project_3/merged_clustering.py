@@ -74,24 +74,23 @@ def separateByRegion(CDC_Data, state_label, has_abbrev):
 		new_CDC_data['region'] = new_CDC_data[state_label].apply(lambda x: categorization(x))
 		return new_CDC_data
 
+def pollution_categorization(value):
+	if value > 2.0:
+		return 'very_high'
+	elif value <= 2.0 and value > 1.0:
+		return 'high'
+	elif value <= 1.0 and value > -1.0:
+		return 'medium'
+	elif value <= -1.0 and value > -2.0:
+		return 'low'
+	else:
+		return  'very low'
+
 #adds a column for the binned level for the data based on the z-score. 
 def binRate(CDC_Data, data_label):
 	new_CDC_data = CDC_Data
-
-	def categorization(value):
-		if value > 2.0:
-			return 'very_high'
-		elif value <= 2.0 and value > 1.0:
-			return 'high'
-		elif value <= 1.0 and value > -1.0:
-			return 'medium'
-		elif value <= -1.0 and value > -2.0:
-			return 'low'
-		else:
-			return  'very low'
-	
 	#apply the binning and create the new columns
-	new_CDC_data[str(data_label + "_bin")] = new_CDC_data[data_label].apply(lambda x: categorization(x))
+	new_CDC_data[str(data_label + "_bin")] = new_CDC_data[data_label].apply(lambda x: pollution_categorization(x))
 		
 	return new_CDC_data
 
@@ -169,9 +168,9 @@ def usaMap2(loc, var, color, title):
 	# exit()
 	fig = go.Figure(data=go.Choropleth(
 		locations = loc,
-		z = var,
+		values = var,
 		locationmode = 'USA-states',
-		colorscale = color,
+		# colorscale = color,
 	))
 
 	fig.update_layout(
@@ -242,8 +241,8 @@ def main():
 	orig_data.rename(columns=dict_names, inplace=True)
 
 	added_CDC_Data = clustered_CDC_data
-	added_CDC_Data = pd.concat([added_CDC_Data, orig_data], axis = 1)
-	added_CDC_Data = pd.concat([added_CDC_Data, year_series, region_series], axis = 1)
+	# added_CDC_Data = pd.concat([added_CDC_Data, orig_data], axis = 1)
+	added_CDC_Data = pd.concat([added_CDC_Data, year_series], axis = 1)
 	added_CDC_Data = pd.concat([added_CDC_Data, orig_cancer, orig_chemicals], axis = 1)
 	added_CDC_Data.dropna(inplace = True)
 
@@ -323,10 +322,48 @@ def main():
 	scatterPlot3(new_clust_data_k_means['AGE_ADJUSTED_CANCER_RATE'], new_clust_data_k_means['AVG_REL_EST_TOTAL_PER_CAPITA'], new_cluster_data_hierarchical['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "K", True, cluster_labels_kmeans)
 	
 
-	usaMap2(norm_data["STATE_ABBR"].unique(), new_clust_data_k_means['cluster_labels'], 'rainbow', "K Means Clusters (n = 6)")
+	cluster_avg_pollution = []
+	cluster_avg_cancer = []
 
-	# #clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(15, 35, 1), silh_score_list, cluster_vals)
-	# clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(15, 35, 1), silh_score_list, cluster_vals)
+	unique_cluster_labels = new_cluster_data_hierarchical['cluster_labels'].unique()
+	
+	for cl_lbl in unique_cluster_labels:
+		cluster_avg_pollution.append(new_cluster_data_hierarchical[new_cluster_data_hierarchical['cluster_labels'] == cl_lbl]['AVG_REL_EST_TOTAL_PER_CAPITA'].mean())
+		cluster_avg_cancer.append(new_cluster_data_hierarchical[new_cluster_data_hierarchical['cluster_labels'] == cl_lbl]['AGE_ADJUSTED_CANCER_RATE'].mean())
+
+
+	bins = ['very-high', 'high', 'medium-high', 'medium-low', 'low', 'very low']
+
+	cluster_avg_pollution_binned_sorted = sorted(cluster_avg_pollution, reverse=True)
+	cluster_avg_pollution_binned = []
+	for lbl in cluster_avg_pollution:
+		x = cluster_avg_pollution_binned_sorted.index(lbl)
+		val = bins[x]
+		cluster_avg_pollution_binned.append(val)
+
+	cluster_avg_cancer_binned_sorted = sorted(cluster_avg_cancer, reverse=True)
+	cluster_avg_cancer_binned = []
+	for lbl in cluster_avg_cancer:
+		x = cluster_avg_cancer_binned_sorted.index(lbl)
+		val = bins[x]
+		cluster_avg_cancer_binned.append(val)
+	
+	print(cluster_avg_pollution)
+	print(cluster_avg_pollution_binned)
+	print(cluster_avg_cancer)
+	print(cluster_avg_cancer_binned)
+
+	# exit()
+	final_cluster_labels = []
+	for pollution_bin, cancer_bin in zip(cluster_avg_pollution_binned, cluster_avg_cancer_binned):
+		s = "pol. = " + pollution_bin + ", canc. = " + cancer_bin
+		final_cluster_labels.append(s)
+	print(final_cluster_labels)
+	# exit()
+	usaMap2(norm_data["STATE_ABBR"].unique(), new_cluster_data_hierarchical['cluster_labels'], 'rainbow', "Hierarchical Clusters (n = 6)")
+
+	# clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(2, 15, 1), silh_score_list, cluster_vals)
+	# clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(2, 15, 1), silh_score_list, cluster_vals)
 	# #clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "D", np.arange(0.3, 7.0, 0.2), silh_score_list, cluster_vals)
 
 	# dict_names = {}
