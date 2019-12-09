@@ -66,6 +66,23 @@ Getting the Size of our Original Datasets (number of rows and columns) files req
         we used this file to get additional info for the "Data" section on our
         website
       
-Making HeapMap of T-tests Between Regions for Average Cancer Rate:
+Making HeapMap of T-tests Between Regions for Average Cancer Rate, Line Graph of Cancer Rate Over Time, & Cancer Rate Correlations Over Time:
+    
+    requires:
+        CdcClustering.py
+        AssociationRuleMining.py
+        CDC_regions_heatmaps.py
+        USCS_CancerTrends_OverTime_ByState.csv
+        
+    run:
+        CDC_regions_heatmaps.py
+    
+    outputs:
+        heatmap of p-values from t-tests between regions for cancer rate time series
+        line graph of the average cancer rate for each region
+        heatmap of correlation coefficients between the average cancer rate of each regions
+        
+
+
 
     
