@@ -37,8 +37,8 @@ Plotly visualizations:
         bar graph with slider showing age-adjusted cancer rates per state over time,
         one bar graph trace per year with year as slider
         
-Getting the Size of our Original Datasets (number of rows and columns)
-    files required**:
+Getting the Size of our Original Datasets (number of rows and columns) files required**:
+    
         CDC_API.csv
         USCS_CancerTrends_OverTime_ByState.csv
         epa_data_state_chems_and_releases.csv
