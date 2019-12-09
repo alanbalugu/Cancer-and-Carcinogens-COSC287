@@ -253,18 +253,6 @@ def main():
 
 	pprint(binned_CDC_Data.columns)
 
-	for year in range(year_start, year_end, 1):
-
-		new_binned_CDC_Data = separate_by_year(binned_CDC_Data, year)
-
-		pprint(new_binned_CDC_Data)
-
-		break
-
-		#makeHeatMap_pval(new_binned_CDC_Data, str(year))
-		#pprint(binned_CDC_Data)
-
-
 	p_val_df = pd.DataFrame()
 
 	p_val_df["STATE"] = binned_CDC_Data["Area"].unique()

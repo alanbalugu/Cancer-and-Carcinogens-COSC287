@@ -267,9 +267,7 @@ def write_to_file(myData, file_name):
 
 # main
 def main():
-  df = pd.read_csv('USCS_CancerTrends_OverTime_ByState.csv' , sep=',', encoding='latin1')
   merged_df = pd.read_csv('merged_data2.csv', sep=',', encoding='latin1')
-
 
   #only keep year, state, chemicals and cancer adta
   merged_df2 = merged_df.loc[:, merged_df.columns.intersection(['YEAR', 'STATE_ABBR', 'AVG_REL_EST_TOTAL_PER_CAPITA', 'AGE_ADJUSTED_CANCER_RATE'])]
