@@ -48,10 +48,16 @@ Getting the Size of our Original Datasets (number of rows and columns) files req
         
         **If any of the above csv files are in a different directory, please
         make sure they are all in the same location as the get_size_of_datasets.py
-        file before running the py file.
+        file before running the py file.**
         
     to run:
-        open terminal and type "python3 get_size_of_datasets.py"
+        1) Open Link_to_Large_EPA_Files and download epa_data_state_chems_and_releases.csv
+        from the Google drive
+        
+            *we had to link to this file instead of including it directly because it was
+            too large
+        
+        2) Open terminal and type "python3 get_size_of_datasets.py"
         
     outputs:
         prints number of rows and columns of each of the dataframes we worked with
