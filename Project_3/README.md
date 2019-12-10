@@ -1,3 +1,6 @@
+Link to complete project 3 Github repository: 
+    https://github.com/alanbalugu/DataScience/edit/master/Project_3
+    
 Plotly visualizations:
 
     files required:
@@ -196,7 +199,9 @@ Network Analysis on Merged Dataset:
                 
                 Various statistics and characteristics about the network
                 
-                
+Website_Pages_HTML_Files.zip
+
+    contains a zip file with HTML files for each page on our website
                 
         
         
