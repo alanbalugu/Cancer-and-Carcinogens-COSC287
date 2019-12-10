@@ -54,6 +54,7 @@ from AssociationRuleMining import abbreviate
 from AssociationRuleMining import doAssociationRuleMining
 
 import plotly.express as px
+import plotly.graph_objs as go
 
 #separates the cdc data by the column for the state and returns the dataframe with the region column based on state timezone. Abbreviates state name if necessary
 def separateByRegion(CDC_Data, state_label, has_abbrev):
@@ -71,18 +72,6 @@ def separateByRegion(CDC_Data, state_label, has_abbrev):
 	else:
 		new_CDC_data['region'] = new_CDC_data[state_label].apply(lambda x: categorization(x))
 		return new_CDC_data
-
-def pollution_categorization(value):
-	if value > 2.0:
-		return 'very_high'
-	elif value <= 2.0 and value > 1.0:
-		return 'high'
-	elif value <= 1.0 and value > -1.0:
-		return 'medium'
-	elif value <= -1.0 and value > -2.0:
-		return 'low'
-	else:
-		return  'very low'
 
 #adds a column for the binned level for the data based on the z-score. 
 def binRate(CDC_Data, data_label):
@@ -124,6 +113,47 @@ def makeDendrogram(linked, labelList):
 	plt.savefig('hierarchical clustering dendrogram.png')
 	plt.clf()
 
+# converts sorted values of 6 clusters averages to string representation
+def pollution_categorization(value):
+	if value > 2.0:
+		return 'very_high'
+	elif value <= 2.0 and value > 1.0:
+		return 'high'
+	elif value <= 1.0 and value > -1.0:
+		return 'medium'
+	elif value <= -1.0 and value > -2.0:
+		return 'low'
+	else:
+		return  'very low'
+
+# creates cloropleth of the USA with states colored by assigned cluster
+def usaMap2(loc, var, color, title, subtitle):
+	# print('state abbrevations:' ,dataFrame[loc])
+	# print('cluster label:' ,dataFrame[var])
+	# exit()
+	fig = go.Figure(data=go.Choropleth(
+		locations = loc,
+		z = var,
+		locationmode = 'USA-states',
+		colorscale = color,
+	))
+
+	fig.update_layout(
+		title_text = title,
+		geo_scope='usa',
+		annotations = [dict(
+        x=0,
+        y=1,
+        xref='paper',
+        yref='paper',
+        text=subtitle,
+        showarrow = False
+    )]
+	)
+
+	filename = 'usamap_'+title.replace(' ','_')+'.html'
+	# fig.show()
+	fig.write_html(filename, auto_open=True)
 
 #creates a scatter plot and color codes the values by cluster labels if that parameter is passed in. Adds annotations to each data point as well.
 def scatterPlot3(X_Data, Y_Data, labels, x_axis, y_axis, title, save, clusterLabels = None):
@@ -157,42 +187,49 @@ def scatterPlot3(X_Data, Y_Data, labels, x_axis, y_axis, title, save, clusterLab
 		plt.show()
 		plt.clf()
 
-# def usaMap(dataFrame, loc, var, color, title):
-#     fig = go.Figure(data=go.Choropleth(
-#         locations=dataFrame[loc],
-#         z = dataFrame[var],
-#         locationmode = 'USA-states',
-#         colorscale = color,
-#     ))
+def findClusterAvg(new_clust_data):
+	cluster_avg_pollution = [-1] * 6
+	cluster_avg_cancer = [-1] * 6
 
-#     fig.update_layout(
-#         title_text = title,
-#         geo_scope='usa',
-#     )
+	unique_cluster_labels = new_clust_data['cluster_labels'].unique()
+	
 
-#     filename = 'usamap_'+title.replace(' ','_')+'.html'
-#     fig.write_html(filename, auto_open=True)
+	for cl_lbl in unique_cluster_labels:
+		cluster_avg_pollution[cl_lbl] = (new_clust_data[new_clust_data['cluster_labels'] == cl_lbl]['AVG_REL_EST_TOTAL_PER_CAPITA'].mean())
+		cluster_avg_cancer[cl_lbl] = (new_clust_data[new_clust_data['cluster_labels'] == cl_lbl]['AGE_ADJUSTED_CANCER_RATE'].mean())
 
-def usaMap2(loc, var, color, title):
-	# print('state abbrevations:' ,dataFrame[loc])
-	# print('cluster label:' ,dataFrame[var])
+
+	bins = ['very-high', 'high', 'medium-high', 'medium-low', 'low', 'very low']
+
+	cluster_avg_pollution_binned_sorted = sorted(cluster_avg_pollution, reverse=True)
+	cluster_avg_pollution_binned = []
+	for lbl in cluster_avg_pollution:
+		x = cluster_avg_pollution_binned_sorted.index(lbl)
+		val = bins[x]
+		cluster_avg_pollution_binned.append(val)
+
+	cluster_avg_cancer_binned_sorted = sorted(cluster_avg_cancer, reverse=True)
+	cluster_avg_cancer_binned = []
+	for lbl in cluster_avg_cancer:
+		x = cluster_avg_cancer_binned_sorted.index(lbl)
+		val = bins[x]
+		cluster_avg_cancer_binned.append(val)
+	
+	final_cluster_labels = []
+	for pollution_bin, cancer_bin in zip(cluster_avg_pollution_binned, cluster_avg_cancer_binned):
+		s = "pol. = " + pollution_bin + ", canc. = " + cancer_bin
+		final_cluster_labels.append(s)
+
+	annotation = "Cluster Avg:\n"
+	i = 0
+	for lbl in final_cluster_labels:
+		annotation += "\t" + str(i) + "-[" + lbl + "]\n"
+		i+=1
+
+	print(annotation)
+	
+	return annotation
 	# exit()
-	fig = go.Figure(data=go.Choropleth(
-		locations = loc,
-		values = var,
-		locationmode = 'USA-states',
-		# colorscale = color,
-	))
-
-	fig.update_layout(
-		title_text = title,
-		geo_scope='usa',
-	)
-
-	filename = 'usamap_'+title.replace(' ','_')+'.html'
-	fig.show()
-	fig.write_html(filename, auto_open=True)
-
 
 #driver code to generate visualizations and do the clustering (Hierarchical and KMeans) on the merged data set
 def main():
@@ -253,35 +290,8 @@ def main():
 
 	orig_data.rename(columns=dict_names, inplace=True)
 
-	added_CDC_Data = clustered_CDC_data
-	# added_CDC_Data = pd.concat([added_CDC_Data, orig_data], axis = 1)
-	added_CDC_Data = pd.concat([added_CDC_Data, year_series], axis = 1)
-	added_CDC_Data = pd.concat([added_CDC_Data, orig_cancer, orig_chemicals], axis = 1)
-	added_CDC_Data.dropna(inplace = True)
-
-	#convert into integers
-	cluster_labels_list = added_CDC_Data['cluster_labels'].astype(int).tolist()
-	#print(cluster_labels_list)
-	#pprint(added_CDC_Data)
-
-	#pprint(added_CDC_Data)
-
-	#plot the clusters with differet axes to visualize clustering. Plots the normalized cancer rate by different variables
-	#scatterPlot(cluster_vals, silh_score_list, "Cluster Size", "Silhouette Score",'silhouette score by cluster size '+cluster_type, True)
-	#scatterPlot2(added_CDC_Data['YEAR'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Year", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by year "+cluster_type, True, cluster_labels_list)
-	#scatterPlot2(added_CDC_Data['region'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Timezone Region", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by region "+cluster_type, True, cluster_labels_list)
-	#scatterPlot2(added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'], added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], "Chemical Pollution Release Per Capita", "Age Adjusted Cancer Rate (per 100,000 people)", "cancer rate by pollution "+cluster_type, True, cluster_labels_list)
-	#scatterPlot2(added_CDC_Data['STATE_ABBR_Orig'], added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'], "US States", "Average Chemical Release Estimate Per Capita", "rate by state "+cluster_type, True, cluster_labels_list)
-	
-	# fig = px.scatter_3d(x = added_CDC_Data['STATE_ABBR_Orig'], y = added_CDC_Data['AGE_ADJUSTED_CANCER_RATE_ORIG'], z = added_CDC_Data['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'], color = cluster_labels_list)
-	# fig.show()
-
-	#----------------------------------------------------------------
-
-	new_Data, silh_score = doHierarchical(processed_data, 25)    #(CDC_Data, k):   new_CDC_data, silhouette_avg
-	print("silhouette score: ", silh_score)
-
-	#--------------------------------------
+	#-----------------------------------------------------------------------------------------
+	#making dataframe for final clustering
 
 	#make a new data frame for clustering values
 	new_clust_df = pd.DataFrame()
@@ -331,63 +341,9 @@ def main():
 	state_data = pd.Series(orig_data['STATE_ABBR_Orig'].unique())
 	state_data.rename('STATE_ABBR_Orig', inplace = True)
 
-	#new_cluster_data_hierarchical['YEAR'] = year_series
-
-	new_cluster_data_hierarchical = pd.concat([new_cluster_data_hierarchical, state_data], axis = 1)
-	new_clust_data_k_means = pd.concat([new_clust_data_k_means, state_data], axis = 1)
-
-	cluster_labels_hier = new_cluster_data_hierarchical['cluster_labels'].astype(int).tolist()
-	cluster_labels_kmeans = new_clust_data_k_means['cluster_labels'].astype(int).tolist()
-
-	# pprint(new_cluster_data_hierarchical)
-	
-	scatterPlot3(new_cluster_data_hierarchical['AGE_ADJUSTED_CANCER_RATE'], new_cluster_data_hierarchical['AVG_REL_EST_TOTAL_PER_CAPITA'], new_cluster_data_hierarchical['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "H", True, cluster_labels_hier)
-	scatterPlot3(new_clust_data_k_means['AGE_ADJUSTED_CANCER_RATE'], new_clust_data_k_means['AVG_REL_EST_TOTAL_PER_CAPITA'], new_cluster_data_hierarchical['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "cool clusters" + "K", True, cluster_labels_kmeans)
-	
-
-	cluster_avg_pollution = []
-	cluster_avg_cancer = []
-
-	unique_cluster_labels = new_cluster_data_hierarchical['cluster_labels'].unique()
-	
-	for cl_lbl in unique_cluster_labels:
-		cluster_avg_pollution.append(new_cluster_data_hierarchical[new_cluster_data_hierarchical['cluster_labels'] == cl_lbl]['AVG_REL_EST_TOTAL_PER_CAPITA'].mean())
-		cluster_avg_cancer.append(new_cluster_data_hierarchical[new_cluster_data_hierarchical['cluster_labels'] == cl_lbl]['AGE_ADJUSTED_CANCER_RATE'].mean())
-
-
-	bins = ['very-high', 'high', 'medium-high', 'medium-low', 'low', 'very low']
-
-	cluster_avg_pollution_binned_sorted = sorted(cluster_avg_pollution, reverse=True)
-	cluster_avg_pollution_binned = []
-	for lbl in cluster_avg_pollution:
-		x = cluster_avg_pollution_binned_sorted.index(lbl)
-		val = bins[x]
-		cluster_avg_pollution_binned.append(val)
-
-	cluster_avg_cancer_binned_sorted = sorted(cluster_avg_cancer, reverse=True)
-	cluster_avg_cancer_binned = []
-	for lbl in cluster_avg_cancer:
-		x = cluster_avg_cancer_binned_sorted.index(lbl)
-		val = bins[x]
-		cluster_avg_cancer_binned.append(val)
-	
-	print(cluster_avg_pollution)
-	print(cluster_avg_pollution_binned)
-	print(cluster_avg_cancer)
-	print(cluster_avg_cancer_binned)
-
-	# exit()
-	final_cluster_labels = []
-	for pollution_bin, cancer_bin in zip(cluster_avg_pollution_binned, cluster_avg_cancer_binned):
-		s = "pol. = " + pollution_bin + ", canc. = " + cancer_bin
-		final_cluster_labels.append(s)
-	print(final_cluster_labels)
-	# exit()
-	usaMap2(norm_data["STATE_ABBR"].unique(), new_cluster_data_hierarchical['cluster_labels'], 'rainbow', "Hierarchical Clusters (n = 6)")
-
-	# clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "K", np.arange(2, 15, 1), silh_score_list, cluster_vals)
-	# clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "H", np.arange(2, 15, 1), silh_score_list, cluster_vals)
-	# #clustered_CDC_data, silh_score_list, cluster_vals = cycleClustering(processed_data, "D", np.arange(0.3, 7.0, 0.2), silh_score_list, cluster_vals)
+	#add state abbreviation back into the dataframes
+	new_clust_data = pd.concat([new_clust_data, state_data], axis = 1)
+	new_clust_data2 = pd.concat([new_clust_data2, state_data], axis = 1)
 
 	#save the cluster labels as lists
 	cluster_labels_list2 = new_clust_data['cluster_labels'].astype(int).tolist()
@@ -400,6 +356,11 @@ def main():
 	scatterPlot3(new_clust_data['AGE_ADJUSTED_CANCER_RATE'], new_clust_data['AVG_REL_EST_TOTAL_PER_CAPITA'], new_clust_data['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "Hierarchical Clustering", True, cluster_labels_list2)
 	scatterPlot3(new_clust_data2['AGE_ADJUSTED_CANCER_RATE'], new_clust_data2['AVG_REL_EST_TOTAL_PER_CAPITA'], new_clust_data['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "KMeans Clustering", True, cluster_labels_list3)
 
+	#make cloropleth of clusters
+	cluster_averages = findClusterAvg(new_clust_data)
+
+	usaMap2(norm_data["STATE_ABBR"].unique(), new_clust_data['cluster_labels'], 'rainbow', "Hierarchical Clusters (n = 6)", cluster_averages)
+
 	#----------------------------------------
 
 	#drop the state abbreviation for dendrogram production
@@ -410,4 +371,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
