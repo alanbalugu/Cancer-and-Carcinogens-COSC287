@@ -7,10 +7,7 @@ import chart_studio.plotly as py
 import pandas as pd
 import plotly.graph_objs as go
 
-# gapminder = px.data.gapminder().query("country=='Canada'")
-# fig = px.line(gapminder, x="year", y="lifeExp", title='Life expectancy in Canada')
-# fig.show()
-
+# long form version of release types. used to expand the release type codes to full words.
 RELEASE_NAMES = ['Air - Stack', 'Air - not stack', 'Land treatment/application farming ',
 				'Landfill - Other', 'On-site RCRA Subtitle C landfills', 'On-site surface impoundment',
 				'Other On-site surface impoundment', 'Other On-site land', 'Publicly Owned Treatment Works - Metals',
@@ -18,7 +15,7 @@ RELEASE_NAMES = ['Air - Stack', 'Air - not stack', 'Land treatment/application f
 				'RCRA Subtitle C On-site surface impoundment', 'Recycled', 'Underground injection On-site I',
 				'Underground injection on-site V', 'Used for Energy Recovery', 'Waste Treatment', 'Water']
 
-# plot land distribution over time
+# plot emission distribution over time
 def stackedBarChart(data, col_names):
 	# Source: https://plot.ly/python/bar-charts/
 	x = data['YEAR']
@@ -31,6 +28,7 @@ def stackedBarChart(data, col_names):
 
 	fig.write_html('emission_distribution.html', auto_play=True)
 
+# plot emission release type distribution over time
 def multiLineChart(data, col_names):
 	# Source: https://plot.ly/python/bar-charts/
 	x = data['YEAR']
@@ -41,36 +39,36 @@ def multiLineChart(data, col_names):
 	
 	fig.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'}, title="Emission Distribution Over Time",yaxis_title="Total Emissions",xaxis_title="Year")
 
-def main():
-	# RELEASE_NAMES.sort()
-	# print(RELEASE_NAMES)
-	# exit()
-	df = pd.read_csv('merged_data2.csv' , sep=',', encoding='latin1')
+# create aggregated emissions releases 
+def aggregateEmissions(df):
+	# prepare dataframe and variables
 	df.drop(columns='AVG_REL_EST_TOTAL_ONSITE_RELEASE') 	# drop sum columns
 	df.drop(columns='AVG_REL_EST_TOTAL_ON_OFFSITE_RELEASE') # drop sum columns
 	release_col_names = df.columns[2:20]
-	print(release_col_names)
-	# release_types = [s.replace('AVG_REL_EST_','') for s in release_col_names]
 	years = df.YEAR.unique()
 	years = [int(x) for x in years]
 
+	# create empty dataframe with necessary cols
 	temp = pd.DataFrame(data={'YEAR':years})
 	annual_total_pollution_by_release_type = pd.concat([temp, pd.DataFrame(columns=release_col_names)],sort=True)
-	
+
+	# populate dataframe
 	i = int(0)
 	for year in years:
 		for col_name in release_col_names:
 			annual_total_pollution_by_release_type.at[i,col_name] = df[df['YEAR'] == int(year)][col_name].sum()
-
 		i += 1
 
-		
-	annual_total_pollution_by_release_type.to_csv(r'emission_distribution.csv', index = False , header=True)
+	return annual_total_pollution_by_release_type, release_col_names
+
+def main():
+
+	df = pd.read_csv('merged_data2.csv' , sep=',', encoding='latin1')
+
+	annual_total_pollution_by_release_type, release_col_names = aggregateEmissions(df)
 
 	stackedBarChart(annual_total_pollution_by_release_type, release_col_names)
 	# multiLineChart(annual_total_pollution_by_release_type, release_col_names, release_types)
-
-
 
 if __name__ == '__main__':
 	main()

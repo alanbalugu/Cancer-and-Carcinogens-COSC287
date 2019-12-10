@@ -128,9 +128,6 @@ def pollution_categorization(value):
 
 # creates cloropleth of the USA with states colored by assigned cluster
 def usaMap2(loc, var, color, title, subtitle):
-	# print('state abbrevations:' ,dataFrame[loc])
-	# print('cluster label:' ,dataFrame[var])
-	# exit()
 	fig = go.Figure(data=go.Choropleth(
 		locations = loc,
 		z = var,
@@ -152,7 +149,6 @@ def usaMap2(loc, var, color, title, subtitle):
 	)
 
 	filename = 'usamap_'+title.replace(' ','_')+'.html'
-	# fig.show()
 	fig.write_html(filename, auto_open=True)
 
 #creates a scatter plot and color codes the values by cluster labels if that parameter is passed in. Adds annotations to each data point as well.
@@ -187,20 +183,23 @@ def scatterPlot3(X_Data, Y_Data, labels, x_axis, y_axis, title, save, clusterLab
 		plt.show()
 		plt.clf()
 
-def findClusterAvg(new_clust_data):
+# calculate the average pollution and cancer rates of each of 6 clusters and return an annotation for the cloropleth
+def generateClusterAvgAnnotation(new_clust_data):
 	cluster_avg_pollution = [-1] * 6
 	cluster_avg_cancer = [-1] * 6
 
 	unique_cluster_labels = new_clust_data['cluster_labels'].unique()
 	
-
+	# calculate numerical mean cancer and pollution
 	for cl_lbl in unique_cluster_labels:
 		cluster_avg_pollution[cl_lbl] = (new_clust_data[new_clust_data['cluster_labels'] == cl_lbl]['AVG_REL_EST_TOTAL_PER_CAPITA'].mean())
 		cluster_avg_cancer[cl_lbl] = (new_clust_data[new_clust_data['cluster_labels'] == cl_lbl]['AGE_ADJUSTED_CANCER_RATE'].mean())
 
 
+	# convert numerical values to string representation from high to low
 	bins = ['v high', 'high', 'med high', 'med low', 'low', 'v low']
 
+	# pollution conversion
 	cluster_avg_pollution_binned_sorted = sorted(cluster_avg_pollution, reverse=True)
 	cluster_avg_pollution_binned = []
 	for lbl in cluster_avg_pollution:
@@ -208,6 +207,7 @@ def findClusterAvg(new_clust_data):
 		val = bins[x]
 		cluster_avg_pollution_binned.append(val)
 
+	# cancer conversion
 	cluster_avg_cancer_binned_sorted = sorted(cluster_avg_cancer, reverse=True)
 	cluster_avg_cancer_binned = []
 	for lbl in cluster_avg_cancer:
@@ -215,11 +215,13 @@ def findClusterAvg(new_clust_data):
 		val = bins[x]
 		cluster_avg_cancer_binned.append(val)
 	
+	# combine cancer and pollution string for each cluster
 	final_cluster_labels = []
 	for pollution_bin, cancer_bin in zip(cluster_avg_pollution_binned, cluster_avg_cancer_binned):
 		s = pollution_bin + ", " + cancer_bin
 		final_cluster_labels.append(s)
 
+	# create final annotation string
 	annotation = "Avg:\n"
 	i = 0
 	for lbl in final_cluster_labels:
@@ -229,7 +231,6 @@ def findClusterAvg(new_clust_data):
 	print(annotation)
 	
 	return annotation
-	# exit()
 
 #driver code to generate visualizations and do the clustering (Hierarchical and KMeans) on the merged data set
 def main():
@@ -308,8 +309,6 @@ def main():
 	#add in the original un-normalized data and the years
 	processed_data = pd.concat([processed_data, orig_cancer, orig_chemicals, year_series], axis = 1)
 
-	#pprint(processed_data)
-
 	#drop rows with empty data
 	processed_data.dropna(inplace = True)
 	pprint(len(processed_data))
@@ -319,7 +318,6 @@ def main():
 		state_avg_cancer.append( processed_data.loc[processed_data['STATE_ABBR'] == state]['AGE_ADJUSTED_CANCER_RATE_ORIG'].mean() )
 		state_avg_chem.append( processed_data.loc[processed_data['STATE_ABBR'] == state]['AVG_REL_EST_TOTAL_PER_CAPITA_ORIG'].mean() )
 
-	#pprint(year_series)
 
 	#add new columns in dataframe for average chemicals and average cancer rate
 	new_clust_df["AGE_ADJUSTED_CANCER_RATE"] = state_avg_cancer
@@ -357,9 +355,10 @@ def main():
 	scatterPlot3(new_clust_data2['AGE_ADJUSTED_CANCER_RATE'], new_clust_data2['AVG_REL_EST_TOTAL_PER_CAPITA'], new_clust_data['STATE_ABBR_Orig'], "Average Age Adjusted Cancer Rate (per 100,000 people)", "Average Chemical Release Estimate Per Capita", "KMeans Clustering", True, cluster_labels_list3)
 
 	#make cloropleth of clusters
-	cluster_averages = findClusterAvg(new_clust_data)
+	cluster_average_annotation = generateClusterAvgAnnotation(new_clust_data)
 
-	usaMap2(norm_data["STATE_ABBR"].unique(), new_clust_data['cluster_labels'], 'rainbow', "Hierarchical Clusters (n = 6), Cluster Avg Format = (pollution, cancer)", cluster_averages)
+	# create USA map cloropleth with states colored by hiearchical clustering(n=6) cluster label with avg cluster values as annotation
+	usaMap2(norm_data["STATE_ABBR"].unique(), new_clust_data['cluster_labels'], 'rainbow', "Hierarchical Clusters (n = 6), Cluster Avg Format = (pollution, cancer)", cluster_average_annotation)
 
 	#----------------------------------------
 
