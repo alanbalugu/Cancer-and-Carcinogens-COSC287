@@ -3,6 +3,10 @@ Link to complete project 3 Github repository:
     
     *if the .csv datasets are not populated in the .zip file, please use the above link to download the full datasets and add to this directory.
     
+Additional Analysis:
+    
+    *see network analysis section and Network Analysis pdf file
+    
 Plotly visualizations:
 
     files required:
