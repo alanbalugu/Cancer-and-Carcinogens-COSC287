@@ -217,10 +217,10 @@ def findClusterAvg(new_clust_data):
 	
 	final_cluster_labels = []
 	for pollution_bin, cancer_bin in zip(cluster_avg_pollution_binned, cluster_avg_cancer_binned):
-		s = "p=" + pollution_bin + ", c=" + cancer_bin
+		s = pollution_bin + ", " + cancer_bin
 		final_cluster_labels.append(s)
 
-	annotation = "Cluster Avg(p=pol, c=canc):\n"
+	annotation = "Avg:\n"
 	i = 0
 	for lbl in final_cluster_labels:
 		annotation += "\t" + str(i) + "-[" + lbl + "]\n"
@@ -359,7 +359,7 @@ def main():
 	#make cloropleth of clusters
 	cluster_averages = findClusterAvg(new_clust_data)
 
-	usaMap2(norm_data["STATE_ABBR"].unique(), new_clust_data['cluster_labels'], 'rainbow', "Hierarchical Clusters (n = 6)", cluster_averages)
+	usaMap2(norm_data["STATE_ABBR"].unique(), new_clust_data['cluster_labels'], 'rainbow', "Hierarchical Clusters (n = 6), Cluster Avg Format = (pollution, cancer)", cluster_averages)
 
 	#----------------------------------------
 
