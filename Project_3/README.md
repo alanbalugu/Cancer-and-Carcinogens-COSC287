@@ -1,6 +1,8 @@
 Link to complete project 3 Github repository: 
     https://github.com/alanbalugu/DataScience/edit/master/Project_3
     
+    *if the .csv datasets are not populated in the .zip file, please use the above link to download the full datasets and add to this directory.
+    
 Plotly visualizations:
 
     files required:
