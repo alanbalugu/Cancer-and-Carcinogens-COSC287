@@ -6,11 +6,16 @@ Plotly visualizations:
     files required:
         merged_data.csv
         plotly_visualizations.py
+        emission_distribution_plotly.py
 
     to run:
         open terminal and type "python3 plotly_visualizations.py"
         code will write several visualizations to html (except for stacked bar
         graph of chemical release types) and auto open in web browser
+
+        open terminal and type "python3 emission_distribution_plotly.py"
+        code will create stacked bar graph of chemical release types
+        and auto open in web browser
 
     visualizations created:
         linear regression model for age-adjusted cancer rate (averaged per state
@@ -51,6 +56,15 @@ Plotly visualizations:
         bar graph with slider showing age-adjusted cancer rates per state over time,
         one bar graph trace per year with year as slider
             index.html for website stored in bar_cancer
+
+        usa choropleth map showing age-adjusted cancer rate (averaged over time)
+        for each state
+            darker blue = higher cancer rate
+            lighter blue = lower cancer rate
+            index.html for website stored in usamap_cancer
+
+        stacked bar graph of chemical release types over time
+            index.html for website stored in usamap_merged_clustering
         
 Getting the Size of our Original Datasets (number of rows and columns) files required**:
     
@@ -81,6 +95,7 @@ Getting the Size of our Original Datasets (number of rows and columns) files req
         we used this file to get additional info for the "Data" section on our
         website
       
+
 Making HeapMap of T-tests Between Regions for Average Cancer Rate, Line Graph of Cancer Rate Over Time, & Cancer Rate Correlations Over Time:
     
     requires:
@@ -157,6 +172,7 @@ Clustering Analysis on Merged Dataset:
     outputs:
         Scatterplot for KMeans clustering with cluster labels for states as colors. (saved as "KMeans Clustering.png")
         Scatterplot for Hierarchical clustering with cluster labels for states as colors. (saved as "Hierarchical Clustering.png")
+        Choropleth for Hiearchical clustering with cluster labels for state as colors. (saved as "usamap_Hierarchical_Clusters_(n_=_6),_Cluster_Avg_Format_=_(pollution,_cancer).html")
         Dendrogram for hierarchical clustering. (saved as "hierarchical clustering dendrogram.png")
         
         
