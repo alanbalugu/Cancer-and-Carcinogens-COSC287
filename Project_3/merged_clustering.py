@@ -199,7 +199,7 @@ def findClusterAvg(new_clust_data):
 		cluster_avg_cancer[cl_lbl] = (new_clust_data[new_clust_data['cluster_labels'] == cl_lbl]['AGE_ADJUSTED_CANCER_RATE'].mean())
 
 
-	bins = ['v-high', 'high', 'med-high', 'med-low', 'low', 'v low']
+	bins = ['v high', 'high', 'med high', 'med low', 'low', 'v low']
 
 	cluster_avg_pollution_binned_sorted = sorted(cluster_avg_pollution, reverse=True)
 	cluster_avg_pollution_binned = []
@@ -217,10 +217,10 @@ def findClusterAvg(new_clust_data):
 	
 	final_cluster_labels = []
 	for pollution_bin, cancer_bin in zip(cluster_avg_pollution_binned, cluster_avg_cancer_binned):
-		s = "pol= " + pollution_bin + ", canc= " + cancer_bin
+		s = "p=" + pollution_bin + ", c=" + cancer_bin
 		final_cluster_labels.append(s)
 
-	annotation = "Cluster Avg:\n"
+	annotation = "Cluster Avg(p=pol, c=canc):\n"
 	i = 0
 	for lbl in final_cluster_labels:
 		annotation += "\t" + str(i) + "-[" + lbl + "]\n"
